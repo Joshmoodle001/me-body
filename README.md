@@ -22,12 +22,15 @@ Me Body helps you understand food, habits, workouts, body measurements, and prog
 ## Features
 
 - **Onboarding** — Set goals, body metrics, and get calculated macro targets (Mifflin-St Jeor)
-- **Dashboard** — See daily nutrition progress vs targets with macro bars
+- **Dashboard** — See daily nutrition progress vs targets with macro bars and quick water add
 - **Food Logging** — Log meals by search, barcode scan, or manual entry
 - **Barcode Scanning** — Look up foods via Open Food Facts (manual input fallback)
 - **Food Search** — Search USDA FoodData Central and local foods
 - **Manual Food Entry** — Create custom foods with full nutrition data
-- **Progress Tracking** — Log weight, body measurements, sleep, steps
+- **Water Tracking** — Quick-add buttons + custom amount logging
+- **Habit Tracker** — Create daily habits, check them off with one tap
+- **Workout Tracking** — Log workouts with type, duration, effort, and notes
+- **Progress Tracking** — Log weight, waist, sleep, mood, steps with trends
 - **Coaching** — Rule-based local coaching insights (no paid AI)
 - **Data Export/Import** — Export all data as JSON, import backups
 - **Privacy Controls** — Detailed privacy page explaining data handling
@@ -267,8 +270,8 @@ me-body/
 - **Barcode scanning**: Uses manual input (browser camera scanning with free libraries is complex on all browsers).
 - **Charts**: Text summaries with basic trend display; full Recharts integration for v1.1.
 - **Supabase sync**: Not yet implemented; local-only for MVP.
-- **Workout builder**: Placeholder; full implementation in v1.1.
-- **Habit tracker**: Data model ready; UI implementation pending.
+- **Workout builder**: Basic logging implemented (type, duration, effort, notes). Exercise sets/reps in v1.1.
+- **Habit tracker**: Daily check-off implemented. Streaks and stats in v1.1.
 - **Recipe builder**: Placeholder; planned for v1.2.
 - **iOS PWA**: Install instructions provided; works in standalone mode once added to home screen.
 
