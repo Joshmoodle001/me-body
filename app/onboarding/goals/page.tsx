@@ -17,35 +17,23 @@ export default function GoalsPage() {
   const [selected, setSelected] = useState<GoalType>("fat_loss");
 
   return (
-    <div className="min-h-screen p-6 bg-stone-50">
+    <div className="min-h-screen p-6" style={{ background: "var(--background)" }}>
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-stone-900 mb-6">What is your goal?</h1>
+        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "1.5rem" }}>What is your goal?</h1>
         <div className="space-y-3 mb-8">
           {GOAL_TYPES.map((goal) => {
-            const info = GOAL_LABELS[goal];
             const isSelected = selected === goal;
             return (
-              <button
-                key={goal}
-                onClick={() => setSelected(goal)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${isSelected ? "border-green-600 bg-green-50" : "border-stone-200 bg-white hover:border-stone-300"}`}
-                aria-pressed={isSelected}
-              >
-                <p className="font-semibold text-stone-900">{info.label}</p>
-                <p className="text-sm text-stone-500 mt-0.5">{info.desc}</p>
+              <button key={goal} onClick={() => setSelected(goal)} className="w-full text-left p-4 rounded-[var(--radius-card)] border-2 transition-all"
+                style={{ borderColor: isSelected ? "var(--brand)" : "var(--border)", background: isSelected ? "var(--brand-soft)" : "var(--card)" }} aria-pressed={isSelected}>
+                <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{GOAL_LABELS[goal].label}</p>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "0.25rem" }}>{GOAL_LABELS[goal].desc}</p>
               </button>
             );
           })}
         </div>
-        <button
-          onClick={() => {
-            sessionStorage.setItem("onboarding_goal", selected);
-            router.push("/onboarding/body");
-          }}
-          className="w-full py-3.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
-        >
-          Next
-        </button>
+        <button onClick={() => { sessionStorage.setItem("onboarding_goal", selected); router.push("/onboarding/body"); }}
+          className="w-full py-3.5 rounded-[var(--radius-button)] font-semibold text-white" style={{ background: "var(--brand)" }}>Next</button>
       </div>
     </div>
   );

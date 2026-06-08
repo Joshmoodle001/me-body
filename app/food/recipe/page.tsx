@@ -6,13 +6,9 @@ import Link from "next/link";
 
 export default function RecipePage() {
   return (
-    <div className="p-6 pb-8">
+    <div className="app-container">
       <PageHeader title="Recipes" />
-      <EmptyState
-        title="Recipes coming soon"
-        description="Build and save custom recipes with ingredient scaling. Available in v1.2."
-        action={{ label: "Back to Search", onClick: () => window.location.href = "/food/search" }}
-      />
+      <EmptyState title="Recipes coming soon" description="Build and save custom recipes with ingredient scaling. Available in v1.2." action={{ label: "Back to Search", onClick: () => window.location.href = "/food/search" }} />
     </div>
   );
 }
