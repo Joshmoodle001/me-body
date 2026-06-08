@@ -41,3 +41,5 @@ next-env.d.ts
 
 # local data exports
 /data-export-*.json
+
+.vercel

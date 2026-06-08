@@ -124,6 +124,21 @@ export default function DashboardPage() {
           <MacroBar label="Carbs" current={daily.carbsG} target={targets.carbsG} unit="g" />
           <MacroBar label="Fat" current={daily.fatG} target={targets.fatG} unit="g" />
           <MacroBar label="Water" current={waterTotal} target={targets.waterMl} unit="ml" />
+          <div className="flex gap-2 mt-3">
+            {[250, 500].map((ml) => (
+              <button
+                key={ml}
+                onClick={async () => {
+                  const { saveWaterLog } = await import("@/db/queries");
+                  await saveWaterLog({ amountMl: ml, loggedAt: new Date().toISOString() });
+                  window.location.reload();
+                }}
+                className="flex-1 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
+              >
+                +{ml}ml
+              </button>
+            ))}
+          </div>
         </div>
 
         {insights.length > 0 && (
@@ -144,6 +159,10 @@ export default function DashboardPage() {
             { label: "Search Food", href: "/food/search", icon: "F" },
             { label: "Add Manual", href: "/food/manual", icon: "+" },
             { label: "Log Weight", href: "/app/progress", icon: "W" },
+            { label: "Add Water", href: "/app/water", icon: "w" },
+            { label: "Habits", href: "/app/habits", icon: "h" },
+            { label: "Workout", href: "/workout", icon: "t" },
+            { label: "Coach", href: "/app/coach", icon: "c" },
           ].map((item) => (
             <Link key={item.href} href={item.href} className="bg-white rounded-xl p-4 border border-stone-200 hover:shadow-sm transition-shadow text-center">
               <span className="text-2xl font-bold text-green-600 block mb-1">{item.icon}</span>

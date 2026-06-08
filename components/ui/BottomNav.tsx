@@ -1,12 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/app/dashboard", label: "Dashboard", icon: "D" },
+  { href: "/app/dashboard", label: "Home", icon: "H" },
   { href: "/app/log", label: "Log", icon: "L" },
   { href: "/app/scan", label: "Scan", icon: "S" },
   { href: "/app/progress", label: "Progress", icon: "P" },
-  { href: "/app/settings", label: "Settings", icon: "s" },
+  { href: "/app/settings", label: "More", icon: "m" },
 ];
 
 export default function BottomNav() {
