@@ -12,69 +12,59 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<DBProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getProfile().then((p) => {
-      setProfile(p ?? null);
-      setLoading(false);
-    });
-  }, []);
+  useEffect(() => { getProfile().then((p) => { setProfile(p ?? null); setLoading(false); }); }, []);
 
-  const handleClearData = async () => {
-    if (window.confirm("This will delete ALL your local data, including logs, foods, profile, and settings. This cannot be undone. Are you sure?")) {
+  const handleClear = async () => {
+    if (window.confirm("Delete ALL local data? This cannot be undone.")) {
       await clearAllData();
       window.location.href = "/onboarding";
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-stone-50"><LoadingState message="Loading..." /></div>;
+  if (loading) return <div style={{ minHeight: "100vh", background: "var(--background)" }}><LoadingState /></div>;
 
   return (
-    <div className="p-6 pb-8">
+    <div className="app-container">
       <PageHeader title="Settings" />
 
       <div className="space-y-4">
         {profile && (
-          <div className="bg-white rounded-xl p-4 border border-stone-200">
-            <p className="font-semibold text-stone-900">{profile.name}</p>
-            <p className="text-sm text-stone-500">Goal: {profile.goalType.replace(/_/g, " ")}</p>
-            <Link href="/settings/targets" className="text-green-600 text-sm font-medium mt-2 inline-block hover:underline">Edit Targets</Link>
+          <div className="card">
+            <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{profile.name}</p>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Goal: {profile.goalType.replace(/_/g, " ")}</p>
+            <Link href="/settings/targets" className="text-sm font-semibold mt-2 inline-block" style={{ color: "var(--brand)" }}>Edit Targets &rarr;</Link>
           </div>
         )}
 
         {!profile && (
-          <Link href="/onboarding" className="block bg-white rounded-xl p-4 border border-stone-200 hover:shadow-sm transition-shadow text-center">
-            <p className="font-semibold text-stone-900">Set Up Profile</p>
-            <p className="text-sm text-stone-500">Complete onboarding to calculate your targets</p>
+          <Link href="/onboarding" className="card block text-center hover:shadow-lg transition-shadow">
+            <p className="font-bold" style={{ color: "var(--text-primary)" }}>Set Up Profile</p>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Complete onboarding to calculate your targets</p>
           </Link>
         )}
 
-        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden divide-y divide-stone-100">
+        <div className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border)", background: "var(--card)" }}>
           {[
             { href: "/settings/targets", label: "Nutrition Targets", desc: "Edit your calorie and macro targets" },
             { href: "/settings/privacy", label: "Privacy", desc: "How your data is handled" },
             { href: "/settings/data", label: "Data", desc: "Export, import, or delete your data" },
             { href: "/settings/sync", label: "Sync", desc: "Cloud sync (coming soon)" },
           ].map((item) => (
-            <Link key={item.href} href={item.href} className="flex items-center justify-between px-4 py-4 hover:bg-stone-50 transition-colors">
+            <Link key={item.href} href={item.href} className="flex items-center justify-between px-5 py-4 transition-colors" style={{ borderBottom: "1px solid var(--border)" }}>
               <div>
-                <p className="font-medium text-stone-900 text-sm">{item.label}</p>
-                <p className="text-xs text-stone-500">{item.desc}</p>
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{item.label}</p>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{item.desc}</p>
               </div>
-              <span className="text-stone-400">&rarr;</span>
+              <span style={{ color: "var(--text-muted)" }}>&rarr;</span>
             </Link>
           ))}
         </div>
 
-        <button
-          onClick={handleClearData}
-          className="w-full py-3 px-4 bg-red-50 text-red-700 rounded-xl font-medium text-sm border border-red-200 hover:bg-red-100 transition-colors"
-        >
+        <button onClick={handleClear} className="w-full py-3.5 rounded-[var(--radius-button)] font-semibold text-sm transition-colors" style={{ background: "var(--error-soft)", color: "var(--error)" }}>
           Delete All Local Data
         </button>
 
-        <p className="text-xs text-stone-400 text-center">
-          Me Body v0.1.0. This app is not medical advice. Nutrition data from Open Food Facts and USDA may need checking.
-        </p>
+        <p className="text-center" style={{ fontSize: "12px", color: "var(--text-muted)" }}>Me Body v0.1.0 · Not medical advice</p>
       </div>
     </div>
   );

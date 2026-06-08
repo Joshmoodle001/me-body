@@ -2,174 +2,153 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate } from "@/db/queries";
 import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights } from "@/lib/coaching";
 import type { DBProfile, DBTargets, DBFoodLog, DBWaterLog, DBFood } from "@/db/localDb";
 
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+function todayStr(): string { return new Date().toISOString().slice(0, 10); }
+
+const QUICK_ACTIONS = [
+  { label: "Scan", href: "/app/scan", icon: "M12 4v1m6 11h2m-6 0h-2m4 0v-2m-8 2v-2m4 0a4 4 0 11-8 0 4 4 0 018 0z" },
+  { label: "Search", href: "/food/search", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
+  { label: "Add Food", href: "/food/manual", icon: "M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" },
+  { label: "Log Weight", href: "/app/progress", icon: "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" },
+];
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<DBProfile | null>(null);
   const [targets, setTargets] = useState<DBTargets | null>(null);
-  const [foodLogs, setFoodLogs] = useState<(DBFoodLog & { food?: DBFood })[]>([]);
-  const [waterLogs, setWaterLogs] = useState<DBWaterLog[]>([]);
+  const [daily, setDaily] = useState({ calories: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0 });
+  const [waterTotal, setWaterTotal] = useState(0);
   const [insights, setInsights] = useState<any[]>([]);
 
-  useEffect(() => {
-    (async () => {
-      const p = await getProfile();
-      if (!p) return setLoading(false);
-      setProfile(p);
+  const load = async () => {
+    const p = await getProfile();
+    if (!p) { setLoading(false); return; }
+    setProfile(p);
+    const t = await getTargets(p.id);
+    setTargets(t ?? null);
+    const date = todayStr();
+    const [logs, waters] = await Promise.all([getFoodLogsForDate(date), getWaterLogsForDate(date)]);
+    setWaterTotal(waters.reduce((s, w) => s + w.amountMl, 0));
 
-      const t = await getTargets(p.id);
-      setTargets(t ?? null);
+    const { db } = await import("@/db/localDb");
+    const enriched = await Promise.all(logs.map(async (l) => {
+      const food = await db.foods.get(l.foodId);
+      const f = l.quantityG / 100;
+      return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f, carbsG: +(food?.carbsPer100g ?? 0) * f, fatG: +(food?.fatPer100g ?? 0) * f, fiberG: +(food?.fiberPer100g ?? 0) * f, loggedAt: l.loggedAt };
+    }));
+    setDaily(calculateDailyNutrition(enriched));
 
-      const date = todayStr();
-      const logs = await getFoodLogsForDate(date);
-      const waters = await getWaterLogsForDate(date);
+    const coachInsights = generateInsights({ todayLogs: enriched, todayWaterMl: waters.reduce((s, w) => s + w.amountMl, 0), weightLogs: [], loggedDaysThisWeek: logs.length > 0 ? 1 : 0, yesterdayLogs: [], mealCount: logs.length, targets: t ?? undefined });
+    setInsights(coachInsights);
+    setLoading(false);
+  };
 
-      // Enrich food logs with food data
-      const { db } = await import("@/db/localDb");
-      const enriched = await Promise.all(
-        logs.map(async (log) => {
-          const food = await db.foods.get(log.foodId);
-          return { ...log, food: food ?? undefined };
-        })
-      );
-      setFoodLogs(enriched);
-      setWaterLogs(waters);
+  useEffect(() => { load(); }, []);
 
-      // Generate insights
-      const enriched2 = enriched.map((log) => {
-        const factor = log.quantityG / 100;
-        return {
-          calories: (log.food?.caloriesPer100g ?? 0) * factor,
-          proteinG: (log.food?.proteinPer100g ?? 0) * factor,
-          loggedAt: log.loggedAt,
-        };
-      });
-      const totalWater = waters.reduce((s, w) => s + w.amountMl, 0);
-      const coachInsights = generateInsights({
-        todayLogs: enriched2,
-        todayWaterMl: totalWater,
-        weightLogs: [],
-        loggedDaysThisWeek: 0,
-        yesterdayLogs: [],
-        mealCount: logs.length,
-        targets: t ?? undefined,
-      });
-      setInsights(coachInsights);
-
-      setLoading(false);
-    })();
-  }, []);
-
-  if (loading) return <div className="min-h-screen bg-stone-50"><LoadingState message="Loading dashboard..." /></div>;
+  if (loading) return <div style={{ background: "var(--background)", minHeight: "100vh" }}><LoadingState /></div>;
 
   if (!profile || !targets) {
     return (
-      <div className="p-6 bg-stone-50 min-h-screen">
-        <PageHeader title="Dashboard" />
-        <div className="text-center py-16">
-          <p className="text-stone-500 mb-4">Set up your profile to see your dashboard.</p>
-          <Link href="/onboarding" className="inline-block px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700">Get Started</Link>
+      <div className="p-6 min-h-screen" style={{ background: "var(--background)" }}>
+        <div className="max-w-md mx-auto text-center pt-20">
+          <h1 className="mb-4">Welcome to Me Body</h1>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>Set up your profile to see your personal dashboard.</p>
+          <Link href="/onboarding" className="inline-flex px-8 py-4 rounded-[var(--radius-button)] font-semibold text-base" style={{ background: "var(--brand)", color: "white" }}>Get Started</Link>
         </div>
       </div>
     );
   }
 
-  const enrichedForNutrition = foodLogs.map((log) => {
-    const factor = log.quantityG / 100;
-    return {
-      calories: Math.round((log.food?.caloriesPer100g ?? 0) * factor),
-      proteinG: +(log.food?.proteinPer100g ?? 0) * factor,
-      carbsG: +(log.food?.carbsPer100g ?? 0) * factor,
-      fatG: +(log.food?.fatPer100g ?? 0) * factor,
-      fiberG: +(log.food?.fiberPer100g ?? 0) * factor,
-    };
-  });
-  const daily = calculateDailyNutrition(enrichedForNutrition);
-  const waterTotal = waterLogs.reduce((s, w) => s + w.amountMl, 0);
-
-  const MacroBar = ({ label, current, target, unit }: { label: string; current: number; target: number; unit: string }) => {
-    const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
-    return (
-      <div className="mb-3">
-        <div className="flex justify-between text-sm mb-1">
-          <span className="font-medium text-stone-700">{label}</span>
-          <span className="text-stone-500">{Math.round(current)} / {target} {unit}</span>
-        </div>
-        <div className="h-2.5 bg-stone-200 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all ${pct >= 100 ? "bg-amber-500" : "bg-green-500"}`} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-    );
-  };
+  const waterPct = Math.min(100, Math.round((waterTotal / targets.waterMl) * 100));
+  const calPct = Math.min(100, Math.round((daily.calories / targets.calories) * 100));
+  const protPct = Math.min(100, Math.round((daily.proteinG / targets.proteinG) * 100));
 
   return (
-    <div className="p-6 pb-8">
-      <PageHeader title="Dashboard" subtitle={todayStr()} />
+    <div className="app-container" style={{ background: "var(--background)" }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Today</p>
+          <h2 style={{ fontSize: "26px", fontWeight: 700, color: "var(--text-primary)" }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</h2>
+        </div>
+        <Link href="/app/settings" className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold" style={{ background: "var(--brand-soft)", color: "var(--brand)" }} aria-label="Settings">
+          {profile.name.charAt(0).toUpperCase()}
+        </Link>
+      </div>
 
-      <div className="grid gap-4">
-        <div className="bg-white rounded-xl p-5 border border-stone-200">
-          <h2 className="font-semibold text-stone-900 mb-4">Today&apos;s Nutrition</h2>
-          <MacroBar label="Calories" current={daily.calories} target={targets.calories} unit="kcal" />
-          <MacroBar label="Protein" current={daily.proteinG} target={targets.proteinG} unit="g" />
-          <MacroBar label="Carbs" current={daily.carbsG} target={targets.carbsG} unit="g" />
-          <MacroBar label="Fat" current={daily.fatG} target={targets.fatG} unit="g" />
-          <MacroBar label="Water" current={waterTotal} target={targets.waterMl} unit="ml" />
-          <div className="flex gap-2 mt-3">
+      {/* Body Score Card */}
+      <div className="card mb-5" style={{ background: "linear-gradient(135deg, var(--card) 0%, var(--background-soft) 100%)" }}>
+        <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "1rem" }}>Today&apos;s Nutrition</p>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {[
+            { label: "Calories", current: daily.calories, target: targets.calories, unit: "kcal", color: "var(--calories)", bg: "rgba(47,111,94,0.07)" },
+            { label: "Protein", current: daily.proteinG, target: targets.proteinG, unit: "g", color: "var(--protein)", bg: "rgba(59,130,160,0.07)" },
+            { label: "Carbs", current: daily.carbsG, target: targets.carbsG, unit: "g", color: "var(--carbs)", bg: "rgba(217,130,75,0.07)" },
+            { label: "Fat", current: daily.fatG, target: targets.fatG, unit: "g", color: "var(--fat)", bg: "rgba(200,169,106,0.07)" },
+          ].map((m) => (
+            <div key={m.label} className="rounded-2xl p-3.5" style={{ background: m.bg }}>
+              <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>{m.label}</p>
+              <p style={{ fontSize: "22px", fontWeight: 700, color: m.color, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
+                {Math.round(m.current)}<span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-muted)", marginLeft: "3px" }}>/ {m.target} {m.unit}</span>
+              </p>
+              <div className="macro-bar mt-2" style={{ background: "var(--border)" }}>
+                <div className="macro-bar-fill" style={{ width: `${Math.min(100, Math.round((m.current / m.target) * 100))}%`, background: m.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Water */}
+        <div className="rounded-2xl p-3.5" style={{ background: "rgba(79,157,184,0.07)" }}>
+          <div className="flex items-center justify-between mb-1">
+            <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Water</span>
+            <span style={{ fontSize: "14px", fontWeight: 650, color: "var(--water)", fontVariantNumeric: "tabular-nums" }}>
+              {waterTotal}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-muted)", marginLeft: "3px" }}>/ {targets.waterMl}ml</span>
+            </span>
+          </div>
+          <div className="macro-bar mb-2">
+            <div className="macro-bar-fill" style={{ width: `${waterPct}%`, background: "var(--water)" }} />
+          </div>
+          <div className="flex gap-2">
             {[250, 500].map((ml) => (
-              <button
-                key={ml}
-                onClick={async () => {
-                  const { saveWaterLog } = await import("@/db/queries");
-                  await saveWaterLog({ amountMl: ml, loggedAt: new Date().toISOString() });
-                  window.location.reload();
-                }}
-                className="flex-1 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
-              >
+              <button key={ml} onClick={async () => { const { saveWaterLog } = await import("@/db/queries"); await saveWaterLog({ amountMl: ml, loggedAt: new Date().toISOString() }); load(); }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors" style={{ background: "rgba(79,157,184,0.12)", color: "var(--water)" }}>
                 +{ml}ml
               </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {insights.length > 0 && (
-          <div className="bg-white rounded-xl p-5 border border-stone-200">
-            <h2 className="font-semibold text-stone-900 mb-3">Coach</h2>
-            {insights.slice(0, 2).map((insight) => (
-              <div key={insight.id} className="mb-3 last:mb-0">
-                <p className="font-medium text-sm text-stone-900">{insight.title}</p>
-                <p className="text-sm text-stone-500">{insight.body}</p>
-              </div>
-            ))}
+      {/* Coach */}
+      {insights.length > 0 && (
+        <div className="card mb-5" style={{ background: "var(--brand-soft)", borderColor: "var(--brand-soft)" }}>
+          <div className="flex items-start gap-3">
+            <span className="text-lg shrink-0" style={{ color: "var(--brand-dark)" }}>&#x2728;</span>
+            <div className="flex-1">
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--brand-dark)", marginBottom: "0.25rem" }}>{insights[0].title}</p>
+              <p style={{ fontSize: "13px", color: "var(--brand)" }}>{insights[0].body}</p>
+            </div>
           </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: "Scan Barcode", href: "/app/scan", icon: "S" },
-            { label: "Search Food", href: "/food/search", icon: "F" },
-            { label: "Add Manual", href: "/food/manual", icon: "+" },
-            { label: "Log Weight", href: "/app/progress", icon: "W" },
-            { label: "Add Water", href: "/app/water", icon: "w" },
-            { label: "Habits", href: "/app/habits", icon: "h" },
-            { label: "Workout", href: "/workout", icon: "t" },
-            { label: "Coach", href: "/app/coach", icon: "c" },
-          ].map((item) => (
-            <Link key={item.href} href={item.href} className="bg-white rounded-xl p-4 border border-stone-200 hover:shadow-sm transition-shadow text-center">
-              <span className="text-2xl font-bold text-green-600 block mb-1">{item.icon}</span>
-              <span className="text-sm font-medium text-stone-700">{item.label}</span>
-            </Link>
-          ))}
         </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-4 gap-2 mb-6">
+        {QUICK_ACTIONS.map((a) => (
+          <Link key={a.href} href={a.href} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-shadow hover:shadow-md" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand)" }}>
+              <path d={a.icon} />
+            </svg>
+            <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>{a.label}</span>
+          </Link>
+        ))}
       </div>
     </div>
   );

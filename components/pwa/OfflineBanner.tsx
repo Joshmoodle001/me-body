@@ -7,21 +7,18 @@ export default function OfflineBanner() {
 
   useEffect(() => {
     setIsOffline(!navigator.onLine);
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
+    const on = () => setIsOffline(false);
+    const off = () => setIsOffline(true);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
   }, []);
 
   if (!isOffline) return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-sm font-medium px-4 py-2 text-center" role="alert">
-      You are offline. Core features like logging and viewing data still work. Food search may be limited.
+    <div className="offline-banner" role="alert">
+      You are offline. Core features still work. Food search may be limited.
     </div>
   );
 }
