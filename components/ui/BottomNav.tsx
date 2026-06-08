@@ -13,15 +13,9 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center px-3 h-16"
-      style={{
-        background: "var(--card)",
-        borderTop: "1px solid var(--border)",
-        paddingBottom: "env(safe-area-inset-bottom, 0.5rem)",
-      }}
+      className="bottom-nav"
       role="navigation"
       aria-label="Main navigation"
     >
@@ -31,16 +25,15 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-lg min-w-[44px] min-h-[44px] text-[10px] font-semibold transition-all"
             style={{ color: isActive ? "var(--brand)" : "var(--text-muted)" }}
             aria-current={isActive ? "page" : undefined}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isActive ? 2.5 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isActive ? 2.5 : 1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d={item.svg} />
             </svg>
-            <span>{item.label}</span>
+            <span style={{ fontSize: "10px", fontWeight: isActive ? 700 : 500, lineHeight: 1 }}>{item.label}</span>
             {isActive && (
-              <span className="absolute bottom-0 w-6 h-0.5 rounded-full" style={{ background: "var(--brand)" }} />
+              <span className="absolute bottom-1 w-5 h-0.5 rounded-full" style={{ background: "var(--brand)" }} />
             )}
           </Link>
         );

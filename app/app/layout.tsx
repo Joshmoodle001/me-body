@@ -8,7 +8,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <OfflineBanner />
-      <div className="has-bottom-nav pb-6">
+      <div className="has-bottom-nav">
         {children}
       </div>
       <BottomNav />

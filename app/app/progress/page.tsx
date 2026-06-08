@@ -23,27 +23,14 @@ export default function ProgressPage() {
   const loadMetrics = async () => {
     const [m, p] = await Promise.all([getBodyMetrics(90), getProfile()]);
     setMetrics(m.sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()));
-    setProfile(p ?? null);
-    setLoading(false);
+    setProfile(p ?? null); setLoading(false);
   };
-
   useEffect(() => { loadMetrics(); }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSave = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true);
     const latest = metrics.length > 0 ? metrics[metrics.length - 1] : null;
-    await saveBodyMetric({
-      weightKg: weight ? Number(weight) : latest?.weightKg ?? undefined,
-      waistCm: waist ? Number(waist) : latest?.waistCm ?? undefined,
-      sleepHours: sleep ? Number(sleep) : latest?.sleepHours ?? undefined,
-      mood1To5: mood,
-      steps: steps ? Number(steps) : latest?.steps ?? undefined,
-      recordedAt: new Date().toISOString(),
-    });
-    setShowForm(false); setWeight(""); setWaist(""); setSleep(""); setSteps("");
-    await loadMetrics();
-    setSaving(false);
+    await saveBodyMetric({ weightKg: weight ? Number(weight) : latest?.weightKg ?? undefined, waistCm: waist ? Number(waist) : latest?.waistCm ?? undefined, sleepHours: sleep ? Number(sleep) : latest?.sleepHours ?? undefined, mood1To5: mood, steps: steps ? Number(steps) : latest?.steps ?? undefined, recordedAt: new Date().toISOString() });
+    setShowForm(false); setWeight(""); setWaist(""); setSleep(""); setSteps(""); await loadMetrics(); setSaving(false);
   };
 
   if (loading) return <div style={{ minHeight: "100vh", background: "var(--background)" }}><LoadingState /></div>;
@@ -55,35 +42,27 @@ export default function ProgressPage() {
   return (
     <div className="app-container">
       <PageHeader title="Progress" subtitle="Your trends over time">
-        <button onClick={() => setShowForm(true)} className="inline-flex px-5 py-2.5 rounded-[var(--radius-button)] text-sm font-semibold" style={{ background: "var(--brand)", color: "white" }}>+ Log</button>
+        <button onClick={() => setShowForm(true)} className="btn btn-primary text-sm" style={{ padding: "0.5rem 1rem" }}>+ Log</button>
       </PageHeader>
 
       {showForm && (
         <div className="dialog-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
           <div className="dialog-content">
             <h3 className="mb-4" style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)" }}>Log Body Metrics</h3>
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="input-label">Weight (kg)</label><input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder={latest?.weightKg?.toString() ?? ""} step={0.1} className="input" /></div>
                 <div><label className="input-label">Waist (cm)</label><input type="number" value={waist} onChange={(e) => setWaist(e.target.value)} placeholder={latest?.waistCm?.toString() ?? ""} step={0.1} className="input" /></div>
                 <div><label className="input-label">Sleep (hrs)</label><input type="number" value={sleep} onChange={(e) => setSleep(e.target.value)} placeholder={latest?.sleepHours?.toString() ?? ""} step={0.5} className="input" /></div>
                 <div><label className="input-label">Steps</label><input type="number" value={steps} onChange={(e) => setSteps(e.target.value)} placeholder={latest?.steps?.toString() ?? ""} className="input" /></div>
               </div>
-              <div>
-                <label className="input-label">Mood</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button type="button" key={n} onClick={() => setMood(n)} className="flex-1 py-3 rounded-xl border-2 text-lg transition-all"
-                      style={{ borderColor: mood === n ? "var(--brand)" : "var(--border)", background: mood === n ? "var(--brand-soft)" : "var(--card)" }}>
-                      {["😞","😕","😐","🙂","😊"][n-1]}
-                    </button>
-                  ))}
-                </div>
+              <div><label className="input-label">Mood</label>
+                <div className="flex gap-2">{[1,2,3,4,5].map((n) => (
+                  <button type="button" key={n} onClick={() => setMood(n)} className="flex-1 py-2.5 rounded-xl border-2 text-lg transition-all"
+                    style={{ borderColor: mood === n ? "var(--brand)" : "var(--border)", background: mood === n ? "var(--brand-soft)" : "var(--card)" }}>{["😞","😕","😐","🙂","😊"][n-1]}</button>
+                ))}</div>
               </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-[var(--radius-button)] font-semibold" style={{ background: "var(--card-muted)", color: "var(--text-secondary)" }}>Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 py-3 rounded-[var(--radius-button)] font-semibold" style={{ background: "var(--brand)", color: "white" }}>{saving ? "Saving..." : "Save"}</button>
-              </div>
+              <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-[var(--radius-button)] font-semibold" style={{ background: "var(--card-muted)", color: "var(--text-secondary)" }}>Cancel</button><button type="submit" disabled={saving} className="flex-1 btn btn-primary py-3">{saving ? "Saving..." : "Save"}</button></div>
             </form>
           </div>
         </div>
@@ -95,17 +74,17 @@ export default function ProgressPage() {
         <div className="space-y-4">
           {latest?.weightKg && (
             <div className="card">
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>Weight</h3>
-              <span style={{ fontSize: "40px", fontWeight: 750, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{latest.weightKg}</span>
+              <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>Weight</p>
+              <span style={{ fontSize: "clamp(32px, 8vw, 40px)", fontWeight: 750, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{latest.weightKg}</span>
               <span style={{ fontSize: "16px", color: "var(--text-muted)", marginLeft: "4px" }}>kg</span>
               {trend.direction !== "not_enough_data" && (
                 <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-                  {trend.direction === "decreasing" ? "Decreasing" : trend.direction === "increasing" ? "Increasing" : "Stable"} by {Math.abs(trend.changeKg)}kg over {trend.days} days
+                  {trend.direction === "decreasing" ? "Down" : trend.direction === "increasing" ? "Up" : "Stable"} {Math.abs(trend.changeKg)}kg over {trend.days} days
                 </p>
               )}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {latest?.waistCm != null && <MetricTile label="Waist" value={latest.waistCm} unit="cm" color="var(--ember)" />}
             {latest?.sleepHours != null && <MetricTile label="Sleep" value={latest.sleepHours} unit="hrs" color="var(--info)" />}
             {latest?.steps != null && <MetricTile label="Steps" value={latest.steps.toLocaleString()} unit="" color="var(--sand)" />}
@@ -120,10 +99,10 @@ export default function ProgressPage() {
 
 function MetricTile({ label, value, unit, color }: { label: string; value: string | number; unit: string; color: string }) {
   return (
-    <div className="card text-center py-3">
-      <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
-      <p style={{ fontSize: "24px", fontWeight: 700, color }} className="tabular-nums">{value}</p>
-      <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>{unit}</p>
+    <div className="card text-center py-2.5 sm:py-3 px-2">
+      <p style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+      <p style={{ fontSize: "clamp(18px, 5vw, 24px)", fontWeight: 700, color }} className="tabular-nums">{value}</p>
+      <p style={{ fontSize: "10px", color: "var(--text-muted)" }}>{unit}</p>
     </div>
   );
 }
