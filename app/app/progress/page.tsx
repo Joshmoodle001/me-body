@@ -28,7 +28,7 @@ export default function ProgressPage() {
   useEffect(() => { loadMetrics(); }, []);
 
   const handleSave = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true);
-    const latest = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+    const latest = metrics.length > 0 ? metrics[0] : null;
     await saveBodyMetric({ weightKg: weight ? Number(weight) : latest?.weightKg ?? undefined, waistCm: waist ? Number(waist) : latest?.waistCm ?? undefined, sleepHours: sleep ? Number(sleep) : latest?.sleepHours ?? undefined, mood1To5: mood, steps: steps ? Number(steps) : latest?.steps ?? undefined, recordedAt: new Date().toISOString() });
     setShowForm(false); setWeight(""); setWaist(""); setSleep(""); setSteps(""); await loadMetrics(); setSaving(false);
   };
@@ -37,7 +37,7 @@ export default function ProgressPage() {
 
   const weightData = metrics.filter((m) => m.weightKg != null).map((m) => ({ weightKg: m.weightKg!, recordedAt: m.recordedAt }));
   const trend = calculateWeightTrend(weightData);
-  const latest = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+  const latest = metrics.length > 0 ? metrics[0] : null;
 
   return (
     <div className="app-container">
