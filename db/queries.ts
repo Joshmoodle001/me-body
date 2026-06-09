@@ -1,5 +1,5 @@
 import { db } from "./localDb";
-import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";
+import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBWorkoutSet, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -212,6 +212,28 @@ export async function saveWorkout(workout: Omit<DBWorkout, "id" | "createdAt" | 
   return data;
 }
 
+// Workout Sets
+export async function getWorkoutSets(workoutId: string): Promise<DBWorkoutSet[]> {
+  return db.workoutSets.where("workoutId").equals(workoutId).filter((s) => !s.deletedAt).toArray();
+}
+
+export async function saveWorkoutSet(set: Omit<DBWorkoutSet, "id" | "createdAt" | "updatedAt" | "syncStatus"> & { id?: string }): Promise<DBWorkoutSet> {
+  const nowStr = now();
+  const data: DBWorkoutSet = {
+    id: set.id ?? generateId(),
+    ...set,
+    createdAt: nowStr,
+    updatedAt: nowStr,
+    syncStatus: "local",
+  };
+  await db.workoutSets.put(data);
+  return data;
+}
+
+export async function deleteWorkoutSet(id: string): Promise<void> {
+  await db.workoutSets.update(id, { deletedAt: now(), updatedAt: now() });
+}
+
 // Habits
 export async function getHabits(): Promise<DBHabit[]> {
   return db.habits.filter((h) => !h.deletedAt).toArray();
@@ -309,6 +331,7 @@ export async function clearAllData(): Promise<void> {
   await db.waterLogs.clear();
   await db.bodyMetrics.clear();
   await db.workouts.clear();
+  await db.workoutSets.clear();
   await db.habits.clear();
   await db.habitLogs.clear();
   await db.safetyFlags.clear();

@@ -147,6 +147,22 @@ export interface DBHabitLog {
   syncStatus: string;
 }
 
+export interface DBWorkoutSet {
+  id: string;
+  workoutId: string;
+  exerciseName: string;
+  setNumber: number;
+  reps?: number;
+  weightKg?: number;
+  distanceKm?: number;
+  durationSeconds?: number;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  syncStatus: string;
+}
+
 export interface DBSafetyFlag {
   id: string;
   profileId: string;
@@ -205,6 +221,7 @@ class MeBodyDB extends Dexie {
   waterLogs!: Table<DBWaterLog, string>;
   bodyMetrics!: Table<DBBodyMetric, string>;
   workouts!: Table<DBWorkout, string>;
+  workoutSets!: Table<DBWorkoutSet, string>;
   habits!: Table<DBHabit, string>;
   habitLogs!: Table<DBHabitLog, string>;
   safetyFlags!: Table<DBSafetyFlag, string>;
@@ -221,6 +238,7 @@ class MeBodyDB extends Dexie {
       waterLogs: "&id, loggedAt, syncStatus",
       bodyMetrics: "&id, recordedAt, syncStatus",
       workouts: "&id, startedAt, syncStatus",
+      workoutSets: "&id, workoutId",
       habits: "&id, syncStatus",
       habitLogs: "&id, habitId, completedAt, syncStatus",
       safetyFlags: "&id, profileId",

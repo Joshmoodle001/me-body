@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
+import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import { lookupBarcode } from "@/lib/foodApiClient";
 import { saveFood, getFoodByBarcode } from "@/db/queries";
 import type { NormalizedFood } from "@/lib/foodApiServer";
@@ -17,18 +18,18 @@ export default function ScanPage() {
   const [result, setResult] = useState<NormalizedFood | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
-  const handleLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!barcode.trim()) return;
+  const doLookup = async (barcodeVal: string) => {
+    setBarcode(barcodeVal);
     setLoading(true); setError(""); setResult(null); setNotFound(false); setSaved(false);
     try {
-      const cached = await getFoodByBarcode(barcode.trim());
+      const cached = await getFoodByBarcode(barcodeVal.trim());
       if (cached) {
         setResult({ source: cached.source as NormalizedFood["source"], sourceId: cached.sourceId, barcode: cached.barcode, name: cached.name, brand: cached.brand, servingSizeG: cached.servingSizeG, caloriesPer100g: cached.caloriesPer100g, proteinPer100g: cached.proteinPer100g, carbsPer100g: cached.carbsPer100g, fatPer100g: cached.fatPer100g, fiberPer100g: cached.fiberPer100g, sugarPer100g: cached.sugarPer100g, sodiumPer100g: cached.sodiumPer100g, confidenceScore: cached.confidenceScore, raw: null });
         setLoading(false); return;
       }
-      const res = await lookupBarcode(barcode.trim());
+      const res = await lookupBarcode(barcodeVal.trim());
       if ("not_found" in res) setNotFound(true); else setResult(res);
     } catch { setError("Could not look up this barcode."); }
     setLoading(false);
@@ -44,7 +45,24 @@ export default function ScanPage() {
     <div className="app-container">
       <PageHeader title="Scan Barcode" subtitle="Look up a food by its barcode" />
 
-      <form onSubmit={handleLookup} className="mb-6">
+      {!showScanner && (
+        <button onClick={() => setShowScanner(true)} className="w-full mb-4 py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all" style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--brand)" }}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2m4 0v-2m-8 2v-2m4 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          Open Camera Scanner
+        </button>
+      )}
+
+      {showScanner && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Camera Scanner</span>
+            <button onClick={() => setShowScanner(false)} className="text-xs font-semibold" style={{ color: "var(--brand)" }}>Close Scanner</button>
+          </div>
+          <BarcodeScanner onScan={(code) => { doLookup(code); setShowScanner(false); }} />
+        </div>
+      )}
+
+      <form onSubmit={(e) => { e.preventDefault(); if (barcode.trim()) doLookup(barcode); }} className="mb-6">
         <label className="input-label">Enter barcode number</label>
         <div className="flex gap-2">
           <input type="text" inputMode="numeric" value={barcode} onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 6001234567890" className="input flex-1" autoFocus />
