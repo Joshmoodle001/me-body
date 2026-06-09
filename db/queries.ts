@@ -19,7 +19,9 @@ function now(): string {
 // Profile
 export async function getProfile(): Promise<DBProfile | undefined> {
   try {
-    return (await db()).profiles.orderBy("createdAt").last();
+    const all = await (await db()).profiles.toArray();
+    if (all.length === 0) return undefined;
+    return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).pop();
   } catch (e: any) {
     console.error("[Queries] getProfile failed:", e?.message, e?.name, e?.stack);
     throw e;
@@ -27,7 +29,13 @@ export async function getProfile(): Promise<DBProfile | undefined> {
 }
 
 export async function saveProfile(profile: Partial<DBProfile> & { name: string; sex: "male" | "female"; birthYear: number; heightCm: number; currentWeightKg: number; activityLevel: string; goalType: string }): Promise<DBProfile> {
-  const existing = await getProfile();
+  let existing: DBProfile | undefined;
+  try {
+    existing = await getProfile();
+  } catch {
+    // Ignore — if the profile query fails, treat it as a fresh profile
+    existing = undefined;
+  }
   const nowStr = now();
   const data: DBProfile = {
     id: existing?.id ?? generateId(),
