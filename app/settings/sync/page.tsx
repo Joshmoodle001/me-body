@@ -14,6 +14,7 @@ export default function SyncSettingsPage() {
   useEffect(() => {
     (async () => {
       const supabase = createClient();
+      if (!supabase) { setUser(null); return; }
       const { data: { user: u } } = await supabase.auth.getUser();
       setUser(u);
       if (u) {
@@ -52,7 +53,7 @@ export default function SyncSettingsPage() {
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     window.location.href = "/";
   };
 

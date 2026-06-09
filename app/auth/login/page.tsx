@@ -15,6 +15,20 @@ function LoginForm() {
   const [isError, setIsError] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
+  const supabase = createClient();
+
+  if (!supabase) {
+    return (
+      <div className="card" style={{ background: "var(--warning-soft)", borderColor: "rgba(255,197,107,0.25)" }}>
+        <p className="font-semibold" style={{ color: "var(--warning)" }}>Setup Required</p>
+        <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+          Supabase environment variables are not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your Vercel deployment.
+        </p>
+        <Link href="/app" className="btn btn-primary mt-4 inline-block text-sm">Continue without account</Link>
+      </div>
+    );
+  }
+
   const errorParam = searchParams.get("error");
   if (errorParam && !message) {
     setMessage("Authentication failed. Please try again.");
@@ -22,32 +36,23 @@ function LoginForm() {
   }
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true); setMessage(""); setIsError(false);
-    const supabase = createClient();
+    e.preventDefault(); setLoading(true); setMessage(""); setIsError(false);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) { setMessage(error.message); setIsError(true); }
-    else { router.push("/app"); }
+    if (error) { setMessage(error.message); setIsError(true); } else { router.push("/app"); }
     setLoading(false);
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setLoading(true); setMessage(""); setIsError(false);
-    const supabase = createClient();
+    e.preventDefault(); if (!email.trim()) return; setLoading(true); setMessage(""); setIsError(false);
     const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
-    if (error) { setMessage(error.message); setIsError(true); }
-    else { setMessage("Check your email for the magic link."); setIsError(false); setMagicLinkSent(true); }
+    if (error) { setMessage(error.message); setIsError(true); } else { setMessage("Check your email for the magic link."); setIsError(false); setMagicLinkSent(true); }
     setLoading(false);
   };
 
   return (
     <div className="card mb-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {message && (
-        <div className="mb-4 p-3 rounded-xl text-sm" style={{ background: isError ? "var(--error-soft)" : "var(--success-soft)", color: isError ? "var(--error)" : "var(--success)" }}>
-          {message}
-        </div>
+        <div className="mb-4 p-3 rounded-xl text-sm" style={{ background: isError ? "var(--error-soft)" : "var(--success-soft)", color: isError ? "var(--error)" : "var(--success)" }}>{message}</div>
       )}
       {!magicLinkSent ? (
         <>

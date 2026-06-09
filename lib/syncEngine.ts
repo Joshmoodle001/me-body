@@ -33,6 +33,7 @@ const TABLE_MAP: Record<string, string> = {
 
 export async function pushToCloud(): Promise<SyncResult> {
   const supabase = createClient();
+  if (!supabase) return { pushed: 0, pulled: 0, error: "Supabase not configured" };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { pushed: 0, pulled: 0, error: "Not signed in" };
 
@@ -81,6 +82,7 @@ export async function pushToCloud(): Promise<SyncResult> {
 
 export async function pullFromCloud(): Promise<SyncResult> {
   const supabase = createClient();
+  if (!supabase) return { pushed: 0, pulled: 0, error: "Supabase not configured" };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { pushed: 0, pulled: 0, error: "Not signed in" };
 
@@ -134,6 +136,7 @@ export async function fullSync(): Promise<SyncResult> {
 
 export async function getSyncStatus(): Promise<{ lastPushedAt: string | null; lastPulledAt: string | null }> {
   const supabase = createClient();
+  if (!supabase) return { lastPushedAt: null, lastPulledAt: null };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { lastPushedAt: null, lastPulledAt: null };
 

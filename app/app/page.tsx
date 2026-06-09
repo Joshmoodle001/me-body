@@ -1,23 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getProfile } from "@/db/queries";
 import LoadingState from "@/components/ui/LoadingState";
 
 export default function AppRoot() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     (async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session) {
-        router.replace("/auth/login");
-        return;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.replace("/auth/login");
+          return;
+        }
       }
 
       try {
@@ -31,7 +32,6 @@ export default function AppRoot() {
         console.error("[AppShell] DB error:", e);
         router.replace("/onboarding");
       }
-      setChecking(false);
     })();
   }, [router]);
 
