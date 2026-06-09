@@ -230,6 +230,8 @@ class MeBodyDB extends Dexie {
 
   constructor() {
     super("MeBodyDB");
+
+    // V1: original 9-table schema (for users who have never upgraded)
     this.version(1).stores({
       profiles: "&id, syncStatus",
       targets: "&id, profileId, syncStatus",
@@ -242,7 +244,25 @@ class MeBodyDB extends Dexie {
       habitLogs: "&id, habitId, completedAt, syncStatus",
     });
 
+    // V2: added workoutSets, safetyFlags, contentItems, provenance + locale index on foods
     this.version(2).stores({
+      profiles: "&id, syncStatus",
+      targets: "&id, profileId, syncStatus",
+      foods: "&id, name, barcode, source, locale, syncStatus",
+      foodLogs: "&id, foodId, mealType, loggedAt, syncStatus",
+      waterLogs: "&id, loggedAt, syncStatus",
+      bodyMetrics: "&id, recordedAt, syncStatus",
+      workouts: "&id, startedAt, syncStatus",
+      workoutSets: "&id, workoutId",
+      habits: "&id, syncStatus",
+      habitLogs: "&id, habitId, completedAt, syncStatus",
+      safetyFlags: "&id, profileId",
+      contentItems: "&id, kind, slug, locale",
+      provenance: "&id, sourceId",
+    });
+
+    // V3: current schema (repairs broken v2 databases from earlier deployment)
+    this.version(3).stores({
       profiles: "&id, syncStatus",
       targets: "&id, profileId, syncStatus",
       foods: "&id, name, barcode, source, locale, syncStatus",
@@ -269,3 +289,26 @@ class MeBodyDB extends Dexie {
 }
 
 export const db = new MeBodyDB();
+
+let recoveryAttempted = false;
+
+export async function ensureDbReady(): Promise<boolean> {
+  if (recoveryAttempted) return true;
+  try {
+    await db.open();
+    return true;
+  } catch (err: any) {
+    const msg = err?.message ?? String(err);
+    if (msg.includes("not indexed") || msg.includes("KeyPath") || msg.includes("schema") || msg.includes("VersionError") || err?.name === "VersionError") {
+      console.warn("MeBodyDB schema mismatch — recreating database...");
+      recoveryAttempted = true;
+      try { await db.delete(); } catch {}
+      // Reload the page to create a fresh database
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+      return false;
+    }
+    throw err;
+  }
+}
