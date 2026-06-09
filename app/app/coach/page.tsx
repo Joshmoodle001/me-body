@@ -9,7 +9,7 @@ import { generateInsights, filterBySerenity, hasSafetyConcerns } from "@/lib/coa
 import { getContraindicationsForProfile } from "@/lib/safety";
 import { calculateWeeklyAverages, calculateWeightTrend } from "@/lib/calculations";
 import type { CoachingInsight } from "@/lib/coaching";
-import { db } from "@/db/localDb";
+import { getDb } from "@/db/localDb";
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
 
@@ -39,7 +39,7 @@ export default function CoachPage() {
     ]);
 
     const enriched = await Promise.all(logs.map(async (l) => {
-      const food = await db.foods.get(l.foodId);
+      const food = await (await getDb()).foods.get(l.foodId);
       const f = l.quantityG / 100;
       return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f, carbsG: +(food?.carbsPer100g ?? 0) * f, fatG: +(food?.fatPer100g ?? 0) * f, fiberG: +(food?.fiberPer100g ?? 0) * f, loggedAt: l.loggedAt };
     }));
@@ -49,7 +49,7 @@ export default function CoachPage() {
     const weekEnd = date + "T23:59:59.999Z";
     const weekLogs = await getFoodLogsForRange(weekStart, weekEnd);
     const weekEnriched = await Promise.all(weekLogs.map(async (l) => {
-      const food = await db.foods.get(l.foodId);
+      const food = await (await getDb()).foods.get(l.foodId);
       const f = l.quantityG / 100;
       return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f, loggedAt: l.loggedAt };
     }));
@@ -62,7 +62,7 @@ export default function CoachPage() {
     const yesterdayStr = daysAgo(1);
     const yesterdayLogs = await getFoodLogsForDate(yesterdayStr);
     const yesterdayEnriched = await Promise.all(yesterdayLogs.map(async (l) => {
-      const food = await db.foods.get(l.foodId);
+      const food = await (await getDb()).foods.get(l.foodId);
       const f = l.quantityG / 100;
       return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f };
     }));

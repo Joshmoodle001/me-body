@@ -250,15 +250,36 @@ class MeBodyDB extends Dexie {
 }
 
 const DB_NAME = "MeBodyDB";
-const INIT_FLAG = "me_body_v4_init";
+const INIT_FLAG = "me_body_v5";
 
-// Remove old corrupted database - runs once per session
-if (typeof window !== "undefined" && !window.sessionStorage.getItem(INIT_FLAG)) {
-  const req = indexedDB.deleteDatabase(DB_NAME);
-  req.onsuccess = () => {};
-  req.onerror = () => {};
-  req.onblocked = () => {};
-  window.sessionStorage.setItem(INIT_FLAG, "1");
+let _db: MeBodyDB | null = null;
+let _initPromise: Promise<MeBodyDB> | null = null;
+
+async function initDatabase(): Promise<MeBodyDB> {
+  if (_db) return _db;
+  if (_initPromise) return _initPromise;
+
+  _initPromise = (async () => {
+    // Nuke old corrupted database - must complete before Dexie opens
+    if (typeof window !== "undefined" && !window.sessionStorage.getItem(INIT_FLAG)) {
+      await new Promise<void>((resolve) => {
+        const req = window.indexedDB.deleteDatabase(DB_NAME);
+        req.onsuccess = () => { window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
+        req.onerror = () => { window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
+        req.onblocked = () => {
+          req.onblocked = () => {};
+          window.sessionStorage.setItem(INIT_FLAG, "1");
+          resolve();
+        };
+      });
+    }
+    _db = new MeBodyDB();
+    return _db;
+  })();
+
+  return _initPromise;
 }
 
-export const db = new MeBodyDB();
+export async function getDb(): Promise<MeBodyDB> {
+  return initDatabase();
+}

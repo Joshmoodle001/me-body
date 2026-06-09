@@ -1,5 +1,12 @@
-import { db } from "./localDb";
+import { getDb } from "./localDb";
 import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBWorkoutSet, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";
+
+let _db: Awaited<ReturnType<typeof getDb>> | null = null;
+async function db(): Promise<Awaited<ReturnType<typeof getDb>>> {
+  if (_db) return _db;
+  _db = await getDb();
+  return _db;
+}
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -11,7 +18,7 @@ function now(): string {
 
 // Profile
 export async function getProfile(): Promise<DBProfile | undefined> {
-  return db.profiles.orderBy("createdAt").last();
+  return (await db()).profiles.orderBy("createdAt").last();
 }
 
 export async function saveProfile(profile: Partial<DBProfile> & { name: string; sex: "male" | "female"; birthYear: number; heightCm: number; currentWeightKg: number; activityLevel: string; goalType: string }): Promise<DBProfile> {
@@ -40,13 +47,13 @@ export async function saveProfile(profile: Partial<DBProfile> & { name: string; 
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.profiles.put(data);
+  (await db()).profiles.put(data);
   return data;
 }
 
 // Targets
 export async function getTargets(profileId: string): Promise<DBTargets | undefined> {
-  return db.targets.where("profileId").equals(profileId).first();
+  return (await db()).targets.where("profileId").equals(profileId).first();
 }
 
 export async function saveTargets(targets: Omit<DBTargets, "id" | "createdAt" | "updatedAt" | "syncStatus"> & { id?: string }): Promise<DBTargets> {
@@ -65,22 +72,22 @@ export async function saveTargets(targets: Omit<DBTargets, "id" | "createdAt" | 
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.targets.put(data);
+  (await db()).targets.put(data);
   return data;
 }
 
 // Foods
 export async function searchLocalFoods(query: string): Promise<DBFood[]> {
   const q = query.toLowerCase();
-  return db.foods.filter((f) => f.name.toLowerCase().includes(q) || (f.brand ?? "").toLowerCase().includes(q) || (f.barcode ?? "").includes(q)).limit(50).toArray();
+  return (await db()).foods.filter((f) => f.name.toLowerCase().includes(q) || (f.brand ?? "").toLowerCase().includes(q) || (f.barcode ?? "").includes(q)).limit(50).toArray();
 }
 
 export async function getFoodById(id: string): Promise<DBFood | undefined> {
-  return db.foods.get(id);
+  return (await db()).foods.get(id);
 }
 
 export async function getFoodByBarcode(barcode: string): Promise<DBFood | undefined> {
-  return db.foods.where("barcode").equals(barcode).first();
+  return (await db()).foods.where("barcode").equals(barcode).first();
 }
 
 export async function saveFood(food: Omit<DBFood, "id" | "createdAt" | "updatedAt" | "syncStatus"> & { id?: string }): Promise<DBFood> {
@@ -111,17 +118,17 @@ export async function saveFood(food: Omit<DBFood, "id" | "createdAt" | "updatedA
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.foods.put(data);
+  (await db()).foods.put(data);
   return data;
 }
 
 // Food logs
 export async function getFoodLogsForDate(dateStr: string): Promise<DBFoodLog[]> {
-  return db.foodLogs.filter((l) => l.loggedAt >= `${dateStr}T00:00:00.000Z` && l.loggedAt <= `${dateStr}T23:59:59.999Z` && !l.deletedAt).toArray();
+  return (await db()).foodLogs.filter((l) => l.loggedAt >= `${dateStr}T00:00:00.000Z` && l.loggedAt <= `${dateStr}T23:59:59.999Z` && !l.deletedAt).toArray();
 }
 
 export async function getFoodLogsForRange(startDate: string, endDate: string): Promise<DBFoodLog[]> {
-  return db.foodLogs.filter((l) => l.loggedAt >= startDate && l.loggedAt <= endDate && !l.deletedAt).toArray();
+  return (await db()).foodLogs.filter((l) => l.loggedAt >= startDate && l.loggedAt <= endDate && !l.deletedAt).toArray();
 }
 
 export async function saveFoodLog(log: Omit<DBFoodLog, "id" | "createdAt" | "updatedAt" | "syncStatus"> & { id?: string }): Promise<DBFoodLog> {
@@ -138,21 +145,21 @@ export async function saveFoodLog(log: Omit<DBFoodLog, "id" | "createdAt" | "upd
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.foodLogs.put(data);
+  (await db()).foodLogs.put(data);
   return data;
 }
 
 export async function updateFoodLog(id: string, updates: Partial<DBFoodLog>): Promise<void> {
-  await db.foodLogs.update(id, { ...updates, updatedAt: now() });
+  (await db()).foodLogs.update(id, { ...updates, updatedAt: now() });
 }
 
 export async function softDeleteFoodLog(id: string): Promise<void> {
-  await db.foodLogs.update(id, { deletedAt: now(), updatedAt: now(), syncStatus: "pending" });
+  (await db()).foodLogs.update(id, { deletedAt: now(), updatedAt: now(), syncStatus: "pending" });
 }
 
 // Water logs
 export async function getWaterLogsForDate(dateStr: string): Promise<DBWaterLog[]> {
-  return db.waterLogs.filter((l) => l.loggedAt >= `${dateStr}T00:00:00.000Z` && l.loggedAt <= `${dateStr}T23:59:59.999Z` && !l.deletedAt).toArray();
+  return (await db()).waterLogs.filter((l) => l.loggedAt >= `${dateStr}T00:00:00.000Z` && l.loggedAt <= `${dateStr}T23:59:59.999Z` && !l.deletedAt).toArray();
 }
 
 export async function saveWaterLog(log: Omit<DBWaterLog, "id" | "createdAt" | "updatedAt" | "syncStatus">): Promise<DBWaterLog> {
@@ -164,21 +171,21 @@ export async function saveWaterLog(log: Omit<DBWaterLog, "id" | "createdAt" | "u
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.waterLogs.put(data);
+  (await db()).waterLogs.put(data);
   return data;
 }
 
 export async function deleteWaterLog(id: string): Promise<void> {
-  await db.waterLogs.update(id, { deletedAt: now(), updatedAt: now() });
+  (await db()).waterLogs.update(id, { deletedAt: now(), updatedAt: now() });
 }
 
 // Body metrics
 export async function getBodyMetrics(limit = 90): Promise<DBBodyMetric[]> {
-  return db.bodyMetrics.filter((m) => !m.deletedAt).reverse().limit(limit).toArray();
+  return (await db()).bodyMetrics.filter((m) => !m.deletedAt).reverse().limit(limit).toArray();
 }
 
 export async function getLatestBodyMetric(): Promise<DBBodyMetric | undefined> {
-  return db.bodyMetrics.filter((m) => !m.deletedAt).reverse().first();
+  return (await db()).bodyMetrics.filter((m) => !m.deletedAt).reverse().first();
 }
 
 export async function saveBodyMetric(metric: Omit<DBBodyMetric, "id" | "createdAt" | "updatedAt" | "syncStatus">): Promise<DBBodyMetric> {
@@ -190,13 +197,13 @@ export async function saveBodyMetric(metric: Omit<DBBodyMetric, "id" | "createdA
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.bodyMetrics.put(data);
+  (await db()).bodyMetrics.put(data);
   return data;
 }
 
 // Workouts
 export async function getWorkouts(limit = 30): Promise<DBWorkout[]> {
-  return db.workouts.filter((w) => !w.deletedAt).reverse().limit(limit).toArray();
+  return (await db()).workouts.filter((w) => !w.deletedAt).reverse().limit(limit).toArray();
 }
 
 export async function saveWorkout(workout: Omit<DBWorkout, "id" | "createdAt" | "updatedAt" | "syncStatus">): Promise<DBWorkout> {
@@ -208,13 +215,13 @@ export async function saveWorkout(workout: Omit<DBWorkout, "id" | "createdAt" | 
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.workouts.put(data);
+  (await db()).workouts.put(data);
   return data;
 }
 
 // Workout Sets
 export async function getWorkoutSets(workoutId: string): Promise<DBWorkoutSet[]> {
-  return db.workoutSets.where("workoutId").equals(workoutId).filter((s) => !s.deletedAt).toArray();
+  return (await db()).workoutSets.where("workoutId").equals(workoutId).filter((s) => !s.deletedAt).toArray();
 }
 
 export async function saveWorkoutSet(set: Omit<DBWorkoutSet, "id" | "createdAt" | "updatedAt" | "syncStatus"> & { id?: string }): Promise<DBWorkoutSet> {
@@ -226,17 +233,17 @@ export async function saveWorkoutSet(set: Omit<DBWorkoutSet, "id" | "createdAt" 
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.workoutSets.put(data);
+  (await db()).workoutSets.put(data);
   return data;
 }
 
 export async function deleteWorkoutSet(id: string): Promise<void> {
-  await db.workoutSets.update(id, { deletedAt: now(), updatedAt: now() });
+  (await db()).workoutSets.update(id, { deletedAt: now(), updatedAt: now() });
 }
 
 // Habits
 export async function getHabits(): Promise<DBHabit[]> {
-  return db.habits.filter((h) => !h.deletedAt).toArray();
+  return (await db()).habits.filter((h) => !h.deletedAt).toArray();
 }
 
 export async function saveHabit(habit: Omit<DBHabit, "id" | "createdAt" | "updatedAt" | "syncStatus">): Promise<DBHabit> {
@@ -248,7 +255,7 @@ export async function saveHabit(habit: Omit<DBHabit, "id" | "createdAt" | "updat
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.habits.put(data);
+  (await db()).habits.put(data);
   return data;
 }
 
@@ -261,80 +268,80 @@ export async function saveHabitLog(log: Omit<DBHabitLog, "id" | "createdAt" | "u
     updatedAt: nowStr,
     syncStatus: "local",
   };
-  await db.habitLogs.put(data);
+  (await db()).habitLogs.put(data);
   return data;
 }
 
 // Safety Flags
 export async function getActiveSafetyFlags(profileId: string): Promise<DBSafetyFlag[]> {
-  return db.safetyFlags.where("profileId").equals(profileId).filter((f) => f.active).toArray();
+  return (await db()).safetyFlags.where("profileId").equals(profileId).filter((f) => f.active).toArray();
 }
 
 export async function getSafetyFlag(id: string): Promise<DBSafetyFlag | undefined> {
-  return db.safetyFlags.get(id);
+  return (await db()).safetyFlags.get(id);
 }
 
 export async function saveSafetyFlag(flag: Omit<DBSafetyFlag, "id" | "createdAt" | "updatedAt">): Promise<DBSafetyFlag> {
   const nowStr = now();
   const data: DBSafetyFlag = { id: generateId(), ...flag, createdAt: nowStr, updatedAt: nowStr };
-  await db.safetyFlags.put(data);
+  (await db()).safetyFlags.put(data);
   return data;
 }
 
 export async function resolveSafetyFlag(id: string): Promise<void> {
-  await db.safetyFlags.update(id, { active: false, resolvedAt: now(), updatedAt: now() });
+  (await db()).safetyFlags.update(id, { active: false, resolvedAt: now(), updatedAt: now() });
 }
 
 // Content Items
 export async function getContentItems(kind?: string, locale?: string): Promise<DBContentItem[]> {
-  let query = db.contentItems.toCollection();
+  let query = (await db()).contentItems.toCollection();
   if (kind) query = query.filter((c) => c.kind === kind);
   if (locale) query = query.filter((c) => c.locale === locale);
   return query.toArray();
 }
 
 export async function getContentBySlug(slug: string): Promise<DBContentItem | undefined> {
-  return db.contentItems.where("slug").equals(slug).first();
+  return (await db()).contentItems.where("slug").equals(slug).first();
 }
 
 export async function seedContentItems(items: Omit<DBContentItem, "createdAt" | "updatedAt">[]): Promise<void> {
   const nowStr = now();
   for (const item of items) {
-    const exists = await db.contentItems.get(item.id);
+    const exists = (await db()).contentItems.get(item.id);
     if (!exists) {
-      await db.contentItems.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
+      (await db()).contentItems.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
     }
   }
 }
 
 // Provenance
 export async function getProvenanceBySource(sourceId: string): Promise<DBProvenance | undefined> {
-  return db.provenance.where("sourceId").equals(sourceId).first();
+  return (await db()).provenance.where("sourceId").equals(sourceId).first();
 }
 
 export async function seedProvenance(items: Omit<DBProvenance, "createdAt" | "updatedAt">[]): Promise<void> {
   const nowStr = now();
   for (const item of items) {
-    const exists = await db.provenance.get(item.id);
+    const exists = (await db()).provenance.get(item.id);
     if (!exists) {
-      await db.provenance.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
+      (await db()).provenance.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
     }
   }
 }
 
 // Bulk clear
 export async function clearAllData(): Promise<void> {
-  await db.profiles.clear();
-  await db.targets.clear();
-  await db.foods.clear();
-  await db.foodLogs.clear();
-  await db.waterLogs.clear();
-  await db.bodyMetrics.clear();
-  await db.workouts.clear();
-  await db.workoutSets.clear();
-  await db.habits.clear();
-  await db.habitLogs.clear();
-  await db.safetyFlags.clear();
-  await db.contentItems.clear();
-  await db.provenance.clear();
+  (await db()).profiles.clear();
+  (await db()).targets.clear();
+  (await db()).foods.clear();
+  (await db()).foodLogs.clear();
+  (await db()).waterLogs.clear();
+  (await db()).bodyMetrics.clear();
+  (await db()).workouts.clear();
+  (await db()).workoutSets.clear();
+  (await db()).habits.clear();
+  (await db()).habitLogs.clear();
+  (await db()).safetyFlags.clear();
+  (await db()).contentItems.clear();
+  (await db()).provenance.clear();
 }

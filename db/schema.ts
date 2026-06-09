@@ -1,2 +1,2 @@
-export { db } from "./localDb";
+export { getDb } from "./localDb";
 export type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBWorkoutSet, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";

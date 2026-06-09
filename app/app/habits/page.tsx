@@ -6,7 +6,7 @@ import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/ui/EmptyState";
 import { getHabits, saveHabit, saveHabitLog } from "@/db/queries";
 import type { DBHabit, DBHabitLog } from "@/db/localDb";
-import { db } from "@/db/localDb";
+import { getDb } from "@/db/localDb";
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
 
@@ -19,7 +19,7 @@ export default function HabitTrackerPage() {
 
   const load = async () => {
     const h = await getHabits(); setHabits(h);
-    const logs = await db.habitLogs.filter((l) => l.completedAt >= `${todayStr()}T00:00:00.000Z` && l.completedAt <= `${todayStr()}T23:59:59.999Z` && !l.deletedAt).toArray();
+    const logs = await (await getDb()).habitLogs.filter((l) => l.completedAt >= `${todayStr()}T00:00:00.000Z` && l.completedAt <= `${todayStr()}T23:59:59.999Z` && !l.deletedAt).toArray();
     setTodayLogs(new Map(logs.map((l) => [l.habitId, l])));
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export default function HabitTrackerPage() {
 
   const toggleHabit = async (habitId: string) => {
     if (todayLogs.has(habitId)) {
-      await db.habitLogs.update(todayLogs.get(habitId)!.id, { deletedAt: new Date().toISOString() });
+      await (await getDb()).habitLogs.update(todayLogs.get(habitId)!.id, { deletedAt: new Date().toISOString() });
     } else {
       await saveHabitLog({ habitId, completedAt: new Date().toISOString(), notes: "" });
     }

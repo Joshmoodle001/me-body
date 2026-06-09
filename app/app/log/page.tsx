@@ -7,7 +7,7 @@ import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/ui/EmptyState";
 import { getFoodLogsForDate } from "@/db/queries";
 import type { DBFoodLog, DBFood } from "@/db/localDb";
-import { db } from "@/db/localDb";
+import { getDb } from "@/db/localDb";
 import { MEAL_TYPES, type MealType } from "@/lib/constants";
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -21,7 +21,7 @@ export default function LogPage() {
     const date = todayStr();
     const logs = await getFoodLogsForDate(date);
     const enriched = await Promise.all(logs.map(async (log) => {
-      const food = await db.foods.get(log.foodId);
+      const food = await (await getDb()).foods.get(log.foodId);
       return { ...log, food: food ?? undefined };
     }));
     setFoodLogs(enriched);
@@ -36,7 +36,7 @@ export default function LogPage() {
   }, {} as Record<MealType, (DBFoodLog & { food?: DBFood })[]>);
 
   const handleRemove = async (id: string) => {
-    await db.foodLogs.update(id, { deletedAt: new Date().toISOString() });
+    await (await getDb()).foodLogs.update(id, { deletedAt: new Date().toISOString() });
     loadLogs();
   };
 

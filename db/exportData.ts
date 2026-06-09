@@ -1,16 +1,16 @@
-import { db } from "./localDb";
+import { getDb } from "./localDb";
 
 export async function exportAllData(): Promise<Record<string, unknown>> {
   const [profiles, targets, foods, foodLogs, waterLogs, bodyMetrics, workouts, habits, habitLogs] = await Promise.all([
-    db.profiles.toArray(),
-    db.targets.toArray(),
-    db.foods.toArray(),
-    db.foodLogs.filter((l) => !l.deletedAt).toArray(),
-    db.waterLogs.filter((l) => !l.deletedAt).toArray(),
-    db.bodyMetrics.filter((m) => !m.deletedAt).toArray(),
-    db.workouts.filter((w) => !w.deletedAt).toArray(),
-    db.habits.filter((h) => !h.deletedAt).toArray(),
-    db.habitLogs.filter((l) => !l.deletedAt).toArray(),
+    (await getDb()).profiles.toArray(),
+    (await getDb()).targets.toArray(),
+    (await getDb()).foods.toArray(),
+    (await getDb()).foodLogs.filter((l) => !l.deletedAt).toArray(),
+    (await getDb()).waterLogs.filter((l) => !l.deletedAt).toArray(),
+    (await getDb()).bodyMetrics.filter((m) => !m.deletedAt).toArray(),
+    (await getDb()).workouts.filter((w) => !w.deletedAt).toArray(),
+    (await getDb()).habits.filter((h) => !h.deletedAt).toArray(),
+    (await getDb()).habitLogs.filter((l) => !l.deletedAt).toArray(),
   ]);
 
   return {
@@ -48,15 +48,15 @@ export async function importJSONData(json: string): Promise<{ success: boolean; 
 
     const { data } = parsed;
 
-    if (data.profiles?.length) await db.profiles.bulkPut(data.profiles);
-    if (data.targets?.length) await db.targets.bulkPut(data.targets);
-    if (data.foods?.length) await db.foods.bulkPut(data.foods);
-    if (data.foodLogs?.length) await db.foodLogs.bulkPut(data.foodLogs);
-    if (data.waterLogs?.length) await db.waterLogs.bulkPut(data.waterLogs);
-    if (data.bodyMetrics?.length) await db.bodyMetrics.bulkPut(data.bodyMetrics);
-    if (data.workouts?.length) await db.workouts.bulkPut(data.workouts);
-    if (data.habits?.length) await db.habits.bulkPut(data.habits);
-    if (data.habitLogs?.length) await db.habitLogs.bulkPut(data.habitLogs);
+    if (data.profiles?.length) await (await getDb()).profiles.bulkPut(data.profiles);
+    if (data.targets?.length) await (await getDb()).targets.bulkPut(data.targets);
+    if (data.foods?.length) await (await getDb()).foods.bulkPut(data.foods);
+    if (data.foodLogs?.length) await (await getDb()).foodLogs.bulkPut(data.foodLogs);
+    if (data.waterLogs?.length) await (await getDb()).waterLogs.bulkPut(data.waterLogs);
+    if (data.bodyMetrics?.length) await (await getDb()).bodyMetrics.bulkPut(data.bodyMetrics);
+    if (data.workouts?.length) await (await getDb()).workouts.bulkPut(data.workouts);
+    if (data.habits?.length) await (await getDb()).habits.bulkPut(data.habits);
+    if (data.habitLogs?.length) await (await getDb()).habitLogs.bulkPut(data.habitLogs);
 
     return { success: true, message: "Data imported successfully." };
   } catch {
