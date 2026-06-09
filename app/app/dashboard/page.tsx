@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import LoadingState from "@/components/ui/LoadingState";
 import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate, getLatestBodyMetric, seedContentItems, seedProvenance } from "@/db/queries";
-import { db, ensureDbReady } from "@/db/localDb";
+import { db } from "@/db/localDb";
 import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
 import { getContraindicationsForProfile } from "@/lib/safety";
@@ -24,8 +24,6 @@ export default function DashboardPage() {
   const [safetyFlags, setSafetyFlags] = useState<any[]>([]);
 
   const load = async () => {
-    const ready = await ensureDbReady();
-    if (!ready) return;
     const p = await getProfile();
     if (!p) { setLoading(false); return; }
     setProfile(p);
