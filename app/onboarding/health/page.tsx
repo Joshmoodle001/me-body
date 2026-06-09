@@ -45,7 +45,10 @@ export default function HealthPage() {
   ];
 
   const toggle = (list: string[], setList: (v: string[]) => void, value: string) => {
-    if (value === "none") { setList([]); return; }
+    if (value === "none") {
+      if (list.includes("none")) { setList([]); return; }
+      setList(["none"]); return;
+    }
     const current = list.filter((c) => c !== "none");
     if (current.includes(value)) {
       setList(current.filter((c) => c !== value));
