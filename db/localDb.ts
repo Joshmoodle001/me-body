@@ -230,6 +230,18 @@ class MeBodyDB extends Dexie {
 
   constructor() {
     super("MeBodyDB");
+    this.version(1).stores({
+      profiles: "&id, syncStatus",
+      targets: "&id, profileId, syncStatus",
+      foods: "&id, name, barcode, source, syncStatus",
+      foodLogs: "&id, foodId, mealType, loggedAt, syncStatus",
+      waterLogs: "&id, loggedAt, syncStatus",
+      bodyMetrics: "&id, recordedAt, syncStatus",
+      workouts: "&id, startedAt, syncStatus",
+      habits: "&id, syncStatus",
+      habitLogs: "&id, habitId, completedAt, syncStatus",
+    });
+
     this.version(2).stores({
       profiles: "&id, syncStatus",
       targets: "&id, profileId, syncStatus",
@@ -244,6 +256,14 @@ class MeBodyDB extends Dexie {
       safetyFlags: "&id, profileId",
       contentItems: "&id, kind, slug, locale",
       provenance: "&id, sourceId",
+    }).upgrade(async (tx) => {
+      await tx.table("profiles").toCollection().modify((p: any) => {
+        if (p.calorieVisibility === undefined) p.calorieVisibility = "visible";
+        if (p.cycleTracking === undefined) p.cycleTracking = false;
+        if (p.pregnancyStatus === undefined) p.pregnancyStatus = "none";
+        if (p.chronicConditions === undefined) p.chronicConditions = [];
+        if (p.medications === undefined) p.medications = [];
+      });
     });
   }
 }

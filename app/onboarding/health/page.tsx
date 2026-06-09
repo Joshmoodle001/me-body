@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HealthPage() {
@@ -9,6 +9,11 @@ export default function HealthPage() {
   const [medications, setMedications] = useState<string[]>([]);
   const [cycleTracking, setCycleTracking] = useState(false);
   const [pregnancyStatus, setPregnancyStatus] = useState<string>("none");
+  const [isMale, setIsMale] = useState(true);
+
+  useEffect(() => {
+    setIsMale((sessionStorage.getItem("onboarding_sex") ?? "male") === "male");
+  }, []);
   const [error, setError] = useState("");
 
   const CONDITION_OPTIONS = [
@@ -62,15 +67,15 @@ export default function HealthPage() {
     if (!conditions.length && !medications.length) {
       sessionStorage.setItem("onboarding_chronicConditions", JSON.stringify([]));
       sessionStorage.setItem("onboarding_medications", JSON.stringify([]));
-      sessionStorage.setItem("onboarding_cycleTracking", String(cycleTracking));
-      sessionStorage.setItem("onboarding_pregnancyStatus", pregnancyStatus);
+      sessionStorage.setItem("onboarding_cycleTracking", String(isMale ? false : cycleTracking));
+      sessionStorage.setItem("onboarding_pregnancyStatus", isMale ? "not_applicable" : pregnancyStatus);
       router.push("/onboarding/preferences");
       return;
     }
     sessionStorage.setItem("onboarding_chronicConditions", JSON.stringify(conditions.filter((c) => c !== "none")));
     sessionStorage.setItem("onboarding_medications", JSON.stringify(medications.filter((m) => m !== "none")));
-    sessionStorage.setItem("onboarding_cycleTracking", String(cycleTracking));
-    sessionStorage.setItem("onboarding_pregnancyStatus", pregnancyStatus);
+    sessionStorage.setItem("onboarding_cycleTracking", String(isMale ? false : cycleTracking));
+    sessionStorage.setItem("onboarding_pregnancyStatus", isMale ? "not_applicable" : pregnancyStatus);
     router.push("/onboarding/preferences");
   };
 
@@ -115,6 +120,7 @@ export default function HealthPage() {
             </div>
           </fieldset>
 
+          {!isMale && (
           <fieldset>
             <legend className="input-label">Pregnancy status</legend>
             <div className="flex gap-2 mt-1">
@@ -132,7 +138,9 @@ export default function HealthPage() {
               ))}
             </div>
           </fieldset>
+          )}
 
+          {!isMale && (
           <fieldset>
             <legend className="input-label">Menstrual cycle tracking</legend>
             <div className="flex items-center gap-3 mt-1">
@@ -146,6 +154,7 @@ export default function HealthPage() {
             </div>
             <p className="input-helper">When on, you can log symptoms and the app will offer flexible targets during your cycle.</p>
           </fieldset>
+          )}
         </div>
 
         <p className="text-center mb-4" style={{ fontSize: "10px", color: "var(--text-muted)", fontStyle: "italic" }}>
