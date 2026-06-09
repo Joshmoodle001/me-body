@@ -1,158 +1,18 @@
-[
-  {
-    "sourceId": "who-healthy-diet-2023",
-    "title": "Healthy Diet",
-    "sourceType": "official_guidance",
-    "organization": "World Health Organization",
-    "url": "https://www.who.int/news-room/fact-sheets/detail/healthy-diet",
-    "license": "CC-BY-NC-SA-3.0-IGO",
-    "jurisdiction": "international",
-    "retrievedAt": "2026-01-15",
-    "evidenceTier": "highest",
-    "notes": "Core healthy diet principles: adequacy, balance, moderation, diversity."
-  },
-  {
-    "sourceId": "who-physical-activity-2020",
-    "title": "WHO Guidelines on Physical Activity and Sedentary Behaviour",
-    "sourceType": "official_guidance",
-    "organization": "World Health Organization",
-    "url": "https://www.who.int/publications/i/item/9789240015128",
-    "license": "CC-BY-NC-SA-3.0-IGO",
-    "jurisdiction": "international",
-    "retrievedAt": "2026-01-15",
-    "evidenceTier": "highest",
-    "notes": "150-300 min moderate activity, muscle strengthening 2+ days."
-  },
-  {
-    "sourceId": "niddk-weight-management",
-    "title": "Understanding Adult Overweight & Obesity",
-    "sourceType": "official_guidance",
-    "organization": "NIDDK / NIH",
-    "url": "https://www.niddk.nih.gov/health-information/weight-management",
-    "license": "public-domain",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-16",
-    "evidenceTier": "highest",
-    "notes": "Energy balance, body weight planner, adaptive responses."
-  },
-  {
-    "sourceId": "nhlbi-sleep",
-    "title": "How Sleep Works - How Much Sleep Is Enough",
-    "sourceType": "official_guidance",
-    "organization": "NHLBI / NIH",
-    "url": "https://www.nhlbi.nih.gov/health/sleep/how-much-sleep",
-    "license": "public-domain",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-16",
-    "evidenceTier": "highest",
-    "notes": "7-9 hours recommended for most adults."
-  },
-  {
-    "sourceId": "ods-micronutrients",
-    "title": "Dietary Supplement Fact Sheets",
-    "sourceType": "official_guidance",
-    "organization": "NIH Office of Dietary Supplements",
-    "url": "https://ods.od.nih.gov/factsheets/list-all/",
-    "license": "public-domain",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-16",
-    "evidenceTier": "highest",
-    "notes": "DRI-based water, vitamin, mineral guidance."
-  },
-  {
-    "sourceId": "acsm-resistance-2026",
-    "title": "Resistance Training for Health — 2026 Update",
-    "sourceType": "primary_guidance",
-    "organization": "American College of Sports Medicine",
-    "url": "https://www.acsm.org",
-    "license": "copyright-acsm",
-    "jurisdiction": "international",
-    "retrievedAt": "2026-02-01",
-    "evidenceTier": "high",
-    "notes": "Consistency over complexity; non-traditional methods work."
-  },
-  {
-    "sourceId": "acog-pregnancy-exercise",
-    "title": "Physical Activity and Exercise During Pregnancy and the Postpartum Period",
-    "sourceType": "official_guidance",
-    "organization": "ACOG",
-    "url": "https://www.acog.org",
-    "license": "copyright-acog",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-16",
-    "evidenceTier": "highest",
-    "notes": "≥150 min moderate activity in uncomplicated pregnancy."
-  },
-  {
-    "sourceId": "safoods-samrc",
-    "title": "SAFOODS — South African Food Composition Database",
-    "sourceType": "official_database",
-    "organization": "SAMRC",
-    "url": "https://www.samrc.ac.za",
-    "license": "licensed-samrc",
-    "jurisdiction": "za",
-    "retrievedAt": "2026-01-20",
-    "evidenceTier": "highest-za",
-    "notes": "Local SA food composition. Licensed — API not publicly documented."
-  },
-  {
-    "sourceId": "sa-obesity-strategy",
-    "title": "Strategy for Prevention and Control of Obesity in South Africa 2015-2020",
-    "sourceType": "national_strategy",
-    "organization": "SA National Department of Health",
-    "url": "https://www.health.gov.za",
-    "license": "government-public",
-    "jurisdiction": "za",
-    "retrievedAt": "2026-01-20",
-    "evidenceTier": "highest-za",
-    "notes": "SA obesity context, sugar tax, local dietary context."
-  },
-  {
-    "sourceId": "usda-fdc",
-    "title": "FoodData Central",
-    "sourceType": "official_database",
-    "organization": "USDA",
-    "url": "https://fdc.nal.usda.gov",
-    "license": "CC0",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-15",
-    "evidenceTier": "high",
-    "notes": "Public domain. 1000 req/hr with DEMO_KEY."
-  },
-  {
-    "sourceId": "open-food-facts",
-    "title": "Open Food Facts",
-    "sourceType": "community_database",
-    "organization": "Open Food Facts",
-    "url": "https://world.openfoodfacts.org",
-    "license": "ODbL",
-    "jurisdiction": "international",
-    "retrievedAt": "2026-01-15",
-    "evidenceTier": "high",
-    "notes": "Crowdsourced. Share-alike. Use with confidence scoring."
-  },
-  {
-    "sourceId": "nih-upf-trial",
-    "title": "Ultra-Processed Diets Cause Excess Calorie Intake and Weight Gain",
-    "sourceType": "primary_study",
-    "organization": "NIH / NIDDK",
-    "url": "https://pubmed.ncbi.nlm.nih.gov/31105044/",
-    "license": "public-domain",
-    "jurisdiction": "us",
-    "retrievedAt": "2026-01-16",
-    "evidenceTier": "high",
-    "notes": "Inpatient RCT: UPF diet led to ~500 kcal/day extra intake."
-  },
-  {
-    "sourceId": "who-sodium-potassium",
-    "title": "Sodium and Potassium Intake",
-    "sourceType": "official_guidance",
-    "organization": "WHO",
-    "url": "https://www.who.int/news-room/fact-sheets/detail/salt-reduction",
-    "license": "CC-BY-NC-SA-3.0-IGO",
-    "jurisdiction": "international",
-    "retrievedAt": "2026-01-15",
-    "evidenceTier": "highest",
-    "notes": "Sodium <2g/day, potassium ≥3,510mg/day."
-  }
-]
+{
+  "version": "2026-06-09",
+  "locale": "en-ZA",
+  "sources": [
+    {"id": "SRC-WHO-PA", "priority": "high", "authority": "WHO", "type": "guideline_group", "evidenceTier": "A", "confidence": "high", "scope": "Physical activity, sedentary behaviour, pregnancy, chronic conditions", "urls": ["https://www.who.int/news-room/fact-sheets/detail/physical-activity", "https://www.who.int/publications/i/item/9789240015128"]},
+    {"id": "SRC-WHO-OBESITY", "priority": "high", "authority": "WHO", "type": "fact_sheet", "evidenceTier": "A", "confidence": "high", "scope": "Obesity context, multifactorial disease, double burden", "urls": ["https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight"]},
+    {"id": "SRC-WHO-ANTHRO", "priority": "high", "authority": "WHO", "type": "measurement_guideline_group", "evidenceTier": "A", "confidence": "high", "scope": "Waist circumference, risk prediction, measurement protocol", "urls": ["https://www.who.int/publications/i/item/9789241501491", "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-weight"]},
+    {"id": "SRC-WHO-MICRO-HYDRATION", "priority": "high", "authority": "WHO", "type": "guideline_group", "evidenceTier": "A", "confidence": "high", "scope": "Sodium, potassium, pregnancy iron-folate, antenatal nutrition", "urls": ["https://www.who.int/publications/i/item/9789241504836", "https://www.who.int/publications/i/item/9789241504829", "https://www.who.int/tools/elena/interventions/daily-iron-pregnancy"]},
+    {"id": "SRC-NIH-NIDDK-METABOLISM", "priority": "high", "authority": "NIH NIDDK", "type": "official_resource_group", "evidenceTier": "A", "confidence": "high", "scope": "Energy balance, appetite, diabetes prevention, digestion, gut-health basics", "urls": ["https://www.niddk.nih.gov/research-funding/research-programs/metabolism-energy-obesity", "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes/game-plan"]},
+    {"id": "SRC-NIH-ODS-MICROS", "priority": "high", "authority": "NIH ODS", "type": "official_resource_group", "evidenceTier": "A", "confidence": "high", "scope": "Pregnancy nutrients, iron, folate, calcium, B12, potassium, iodine, vitamin D", "urls": ["https://ods.od.nih.gov/factsheets/Iron-HealthProfessional/", "https://ods.od.nih.gov/factsheets/Folate-HealthProfessional/", "https://ods.od.nih.gov/factsheets/calcium-HealthProfessional/", "https://ods.od.nih.gov/factsheets/Vitaminb12-HealthProfessional/", "https://ods.od.nih.gov/factsheets/Potassium-HealthProfessional/"]},
+    {"id": "SRC-ACSM-RT", "priority": "high", "authority": "ACSM", "type": "position_stand_group", "evidenceTier": "A", "confidence": "high", "scope": "Resistance training prescription, healthy adults, older adults", "urls": ["https://acsm.org/education-resources/pronouncements-scientific-communications/position-stands/", "https://acsm.org/effective-resistance-training-program-infographic/"]},
+    {"id": "SRC-PUBMED-PROTEIN-RECOMP", "priority": "high", "authority": "PubMed indexed reviews and trials", "type": "review_group", "evidenceTier": "B", "confidence": "moderate_high", "scope": "Protein, nutrient timing, higher protein during deficits, body recomposition", "urls": ["https://pubmed.ncbi.nlm.nih.gov/28919842/", "https://pubmed.ncbi.nlm.nih.gov/26817506/", "https://pubmed.ncbi.nlm.nih.gov/32699189/"]},
+    {"id": "SRC-PUBMED-ENERGY-ADAPT", "priority": "high", "authority": "PubMed indexed reviews and trials", "type": "review_group", "evidenceTier": "B", "confidence": "moderate", "scope": "Adaptive thermogenesis, NEAT, intermittent energy restriction, self-monitoring, weight maintenance", "urls": ["https://pubmed.ncbi.nlm.nih.gov/33762040/", "https://pubmed.ncbi.nlm.nih.gov/30583725/", "https://pubmed.ncbi.nlm.nih.gov/18198319/"]},
+    {"id": "SRC-PUBMED-FEMALE-AGING", "priority": "high", "authority": "PubMed indexed reviews and trials", "type": "review_group", "evidenceTier": "B", "confidence": "moderate", "scope": "Menstrual function, low energy availability, pregnancy-related training, ageing, sarcopenia", "urls": ["https://pubmed.ncbi.nlm.nih.gov/34164675/", "https://pubmed.ncbi.nlm.nih.gov/35777246/"]},
+    {"id": "SRC-NICE-ED-SAFETY", "priority": "high", "authority": "NICE", "type": "guideline", "evidenceTier": "A", "confidence": "high", "scope": "Eating-disorder recognition, monitoring, pregnancy/perinatal considerations", "urls": ["https://www.nice.org.uk/guidance/ng69/chapter/Recommendations"]},
+    {"id": "SRC-SA-FOODS", "priority": "high", "authority": "FAO, South African DoH, SAMRC, SAJCN", "type": "local_guideline_group", "evidenceTier": "A_B_D", "confidence": "moderate_high", "scope": "South African food groups, household portions, local dietary guidance", "urls": ["https://www.fao.org/nutrition/education/food-dietary-guidelines/regions/countries/south-africa/en/", "https://www.samrc.ac.za/research/intramural-research-units/Biostatistics-safoods", "https://foodfinder.samrc.ac.za/Home.aspx"]}
+  ]
+}

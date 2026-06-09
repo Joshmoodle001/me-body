@@ -1,5 +1,6 @@
 import type { DBProfile, DBTargets, DBBodyMetric } from "@/db/localDb";
 import { getContraindicationsForProfile, getActiveRedFlags } from "./safety";
+import { chooseGoalMode, getGoalModeLabel, getGoalModeDescription } from "./adaptiveEngine";
 
 export interface CoachingInsight {
   id: string;
@@ -63,7 +64,16 @@ export function generateInsights(params: CoachingParams): CoachingInsight[] {
     }
   }
 
-  // --- COMPASSION FIRST: no meals at all ---
+  // --- ADAPTIVE GOAL MODE ---
+  if (profile) {
+    const trainingAgeMonths = 0; // default for new users
+    const detrained = false;
+    const waistRisk = profile.goalType === "fat_loss";
+    const mode = chooseGoalMode(profile, trainingAgeMonths, detrained, waistRisk);
+    if (mode !== "fat_loss" && mode !== "muscle_gain" && mode !== "maintenance") {
+      add(`mode-${mode}`, "goal_guidance", getGoalModeLabel(mode), getGoalModeDescription(mode), "info", `Adaptive goal mode: ${mode}`);
+    }
+  }
   if (params.mealCount === 0) {
     add("no-meals", "meal_gap", "Start with one simple log", "Log your next meal or just a glass of water. You do not need a perfect day to build momentum.", "info", "No meals logged today");
     add("smallest-step", "encouragement", "The smallest step matters", "The smallest useful action right now: drink water, log one balanced meal, or take a 10-minute walk.", "info", "Starting from zero — offer smallest possible step");
