@@ -25,16 +25,16 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            style={{ color: isActive ? "var(--brand)" : "var(--text-muted)" }}
+            style={{
+              color: isActive ? "var(--gold)" : "var(--stone)",
+              background: isActive ? "var(--gold-soft)" : "transparent",
+            }}
             aria-current={isActive ? "page" : undefined}
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isActive ? 2.5 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isActive ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
               <path d={item.svg} />
             </svg>
             <span style={{ fontSize: "10px", fontWeight: isActive ? 700 : 500, lineHeight: 1 }}>{item.label}</span>
-            {isActive && (
-              <span className="absolute bottom-1 w-5 h-0.5 rounded-full" style={{ background: "var(--brand)" }} />
-            )}
           </Link>
         );
       })}

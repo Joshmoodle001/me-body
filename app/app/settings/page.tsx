@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
-import { getProfile } from "@/db/queries";
-import { clearAllData } from "@/db/queries";
+import { getProfile, clearAllData } from "@/db/queries";
 import type { DBProfile } from "@/db/localDb";
 
 export default function SettingsPage() {
@@ -15,10 +14,7 @@ export default function SettingsPage() {
   useEffect(() => { getProfile().then((p) => { setProfile(p ?? null); setLoading(false); }); }, []);
 
   const handleClear = async () => {
-    if (window.confirm("Delete ALL local data? This cannot be undone.")) {
-      await clearAllData();
-      window.location.href = "/onboarding";
-    }
+    if (window.confirm("Delete ALL local data? This cannot be undone.")) { await clearAllData(); window.location.href = "/onboarding"; }
   };
 
   if (loading) return <div style={{ minHeight: "100vh", background: "var(--background)" }}><LoadingState /></div>;
@@ -29,15 +25,18 @@ export default function SettingsPage() {
 
       <div className="space-y-4">
         {profile && (
-          <div className="card">
+          <div className="card card-glow" style={{ textAlign: "center" }}>
+            <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-xl font-bold mb-3" style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "2px solid var(--brand-soft)" }}>
+              {profile.name.charAt(0).toUpperCase()}
+            </div>
             <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{profile.name}</p>
-            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Goal: {profile.goalType.replace(/_/g, " ")}</p>
-            <Link href="/settings/targets" className="text-sm font-semibold mt-2 inline-block" style={{ color: "var(--brand)" }}>Edit Targets &rarr;</Link>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "0.25rem" }}>Goal: {profile.goalType.replace(/_/g, " ")}</p>
+            <Link href="/settings/targets" className="text-sm font-semibold mt-2 inline-block" style={{ color: "var(--gold)" }}>Edit Targets &rarr;</Link>
           </div>
         )}
 
         {!profile && (
-          <Link href="/onboarding" className="card block text-center hover:shadow-lg transition-shadow">
+          <Link href="/onboarding" className="card block text-center">
             <p className="font-bold" style={{ color: "var(--text-primary)" }}>Set Up Profile</p>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Complete onboarding to calculate your targets</p>
           </Link>
@@ -51,10 +50,7 @@ export default function SettingsPage() {
             { href: "/settings/sync", label: "Sync", desc: "Cloud sync (coming soon)" },
           ].map((item) => (
             <Link key={item.href} href={item.href} className="flex items-center justify-between px-5 py-4 transition-colors" style={{ borderBottom: "1px solid var(--border)" }}>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{item.label}</p>
-                <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{item.desc}</p>
-              </div>
+              <div><p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{item.label}</p><p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{item.desc}</p></div>
               <span style={{ color: "var(--text-muted)" }}>&rarr;</span>
             </Link>
           ))}
@@ -64,7 +60,7 @@ export default function SettingsPage() {
           Delete All Local Data
         </button>
 
-        <p className="text-center" style={{ fontSize: "12px", color: "var(--text-muted)" }}>Me Body v0.1.0 · Not medical advice</p>
+        <p className="text-center" style={{ fontSize: "12px", color: "var(--text-muted)" }}>Midnight Ember &middot; Me Body v0.1.0 &middot; Not medical advice</p>
       </div>
     </div>
   );

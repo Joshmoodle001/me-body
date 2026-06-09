@@ -20,25 +20,15 @@ export default function LogPage() {
     setLoading(true);
     const date = todayStr();
     const logs = await getFoodLogsForDate(date);
-    const enriched = await Promise.all(logs.map(async (log) => {
-      const food = await (await getDb()).foods.get(log.foodId);
-      return { ...log, food: food ?? undefined };
-    }));
-    setFoodLogs(enriched);
-    setLoading(false);
+    const enriched = await Promise.all(logs.map(async (log) => { const food = await (await getDb()).foods.get(log.foodId); return { ...log, food: food ?? undefined }; }));
+    setFoodLogs(enriched); setLoading(false);
   };
 
   useEffect(() => { loadLogs(); }, []);
 
-  const grouped = MEAL_TYPES.reduce((acc, meal) => {
-    acc[meal] = foodLogs.filter((l) => l.mealType === meal);
-    return acc;
-  }, {} as Record<MealType, (DBFoodLog & { food?: DBFood })[]>);
+  const grouped = MEAL_TYPES.reduce((acc, meal) => { acc[meal] = foodLogs.filter((l) => l.mealType === meal); return acc; }, {} as Record<MealType, (DBFoodLog & { food?: DBFood })[]>);
 
-  const handleRemove = async (id: string) => {
-    await (await getDb()).foodLogs.update(id, { deletedAt: new Date().toISOString() });
-    loadLogs();
-  };
+  const handleRemove = async (id: string) => { await (await getDb()).foodLogs.update(id, { deletedAt: new Date().toISOString() }); loadLogs(); };
 
   if (loading) return <div style={{ minHeight: "100vh", background: "var(--background)" }}><LoadingState /></div>;
 
@@ -47,26 +37,34 @@ export default function LogPage() {
   return (
     <div className="app-container">
       <PageHeader title="Food Log" subtitle={todayStr()}>
-        <Link href="/food/search" className="inline-flex px-5 py-2.5 rounded-[var(--radius-button)] text-sm font-semibold" style={{ background: "var(--brand)", color: "white" }}>+ Add</Link>
+        <Link href="/food/search" className="btn btn-primary" style={{ fontSize: "13px", padding: "0.5rem 1.25rem" }}>+ Add</Link>
       </PageHeader>
+
+      {/* Macro summary bar */}
+      {foodLogs.length > 0 && (
+        <div className="card mb-4" style={{ background: "var(--card-muted)" }}>
+          <div className="flex items-center justify-between">
+            <div><span className="text-xs uppercase font-semibold" style={{ color: "var(--text-muted)" }}>Calories</span><p className="text-xl font-bold tabular-nums" style={{ color: "var(--calories)" }}>{totalCal}</p></div>
+            <div className="text-right"><span className="text-xs uppercase font-semibold" style={{ color: "var(--text-muted)" }}>Meals</span><p className="text-xl font-bold tabular-nums" style={{ color: "var(--brand)" }}>{foodLogs.length}</p></div>
+          </div>
+        </div>
+      )}
 
       {foodLogs.length === 0 ? (
         <EmptyState title="No meals logged today" description="Search for foods, scan a barcode, or add one manually." action={{ label: "Add Food", onClick: () => window.location.href = "/food/search" }} />
       ) : (
         <div className="space-y-4">
           {MEAL_TYPES.map((meal) => {
-            const items = grouped[meal];
-            if (items.length === 0) return null;
+            const items = grouped[meal]; if (items.length === 0) return null;
             const mealCal = items.reduce((s, l) => s + Math.round((l.food?.caloriesPer100g ?? 0) * l.quantityG / 100), 0);
-
             return (
-              <div key={meal} className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border)", background: "var(--card)", boxShadow: "var(--shadow-card)" }}>
+              <div key={meal} className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border)", background: "var(--card)" }}>
                 <div className="px-5 py-3 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border)", background: "var(--card-muted)" }}>
                   <h3 className="text-sm font-bold capitalize" style={{ color: "var(--text-primary)" }}>{meal}</h3>
-                  <span style={{ fontSize: "13px", fontWeight: 650, color: "var(--text-muted)", fontVariantNumeric: "tabular-nums" }}>{mealCal} kcal</span>
+                  <span style={{ fontSize: "13px", fontWeight: 650, color: "var(--gold)", fontVariantNumeric: "tabular-nums" }}>{mealCal} kcal</span>
                 </div>
                 {items.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div key={log.id} className="flex items-center justify-between px-5 py-3.5">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{log.food?.name ?? "Food"}</p>
                       <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{log.quantityG}g{log.servingLabel ? ` (${log.servingLabel})` : ""}</p>
@@ -82,11 +80,6 @@ export default function LogPage() {
               </div>
             );
           })}
-
-          <div className="card flex items-center gap-2" style={{ background: "var(--card)" }}>
-            <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Total:</span>
-            <span className="text-lg font-bold tabular-nums" style={{ color: "var(--brand)" }}>{totalCal} kcal</span>
-          </div>
         </div>
       )}
     </div>
