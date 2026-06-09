@@ -7,7 +7,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { getFoodLogsForDate, getWaterLogsForDate, getFoodLogsForRange, getProfile, getTargets, getBodyMetrics, getWorkouts, getLatestBodyMetric } from "@/db/queries";
 import { generateInsights, filterBySerenity, hasSafetyConcerns } from "@/lib/coaching";
 import { getContraindicationsForProfile } from "@/lib/safety";
-import { calculateDailyNutrition, calculateWeeklyAverages, calculateWeightTrend } from "@/lib/calculations";
+import { calculateWeeklyAverages, calculateWeightTrend } from "@/lib/calculations";
 import type { CoachingInsight } from "@/lib/coaching";
 import { db } from "@/db/localDb";
 
@@ -55,10 +55,17 @@ export default function CoachPage() {
     }));
 
     const weekDays = new Set(weekLogs.map((l) => l.loggedAt.slice(0, 10))).size;
-    const weekNutrition = calculateDailyNutrition(weekEnriched);
     const weekAvg = calculateWeeklyAverages(weekEnriched);
     const weightData = metrics.filter((m) => m.weightKg != null).map((m) => ({ weightKg: m.weightKg!, recordedAt: m.recordedAt }));
     const trend = calculateWeightTrend(weightData);
+
+    const yesterdayStr = daysAgo(1);
+    const yesterdayLogs = await getFoodLogsForDate(yesterdayStr);
+    const yesterdayEnriched = await Promise.all(yesterdayLogs.map(async (l) => {
+      const food = await db.foods.get(l.foodId);
+      const f = l.quantityG / 100;
+      return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f };
+    }));
 
     setWeeklySummary({
       loggedDays: weekDays,
@@ -84,7 +91,7 @@ export default function CoachPage() {
       steps: latestMetric?.steps,
       mood1To5: latestMetric?.mood1To5,
       loggedDaysThisWeek: weekDays,
-      yesterdayLogs: [],
+      yesterdayLogs: yesterdayEnriched,
       mealCount: logs.length,
       targets: targets ?? undefined,
     });

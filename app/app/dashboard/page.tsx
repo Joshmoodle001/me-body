@@ -45,6 +45,15 @@ export default function DashboardPage() {
     }));
     setDaily(calculateDailyNutrition(enriched));
 
+    const yesterdayRaw = new Date(); yesterdayRaw.setDate(yesterdayRaw.getDate() - 1);
+    const yesterdayStr = yesterdayRaw.toISOString().slice(0, 10);
+    const yesterdayLogs = await getFoodLogsForDate(yesterdayStr);
+    const yesterdayEnriched = await Promise.all(yesterdayLogs.map(async (l) => {
+      const food = await db.foods.get(l.foodId);
+      const f = l.quantityG / 100;
+      return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f };
+    }));
+
     const contraindications = getContraindicationsForProfile(p);
     setSafetyFlags(contraindications);
 
@@ -57,7 +66,7 @@ export default function DashboardPage() {
       steps: metric?.steps,
       mood1To5: metric?.mood1To5,
       loggedDaysThisWeek: logs.length > 0 ? 1 : 0,
-      yesterdayLogs: [],
+      yesterdayLogs: yesterdayEnriched,
       mealCount: logs.length,
       targets: t ?? undefined,
     });
