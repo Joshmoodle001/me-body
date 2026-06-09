@@ -231,8 +231,8 @@ class MeBodyDB extends Dexie {
   constructor() {
     super("MeBodyDB");
 
-    this.version(4).stores({
-      profiles: "&id, syncStatus",
+    this.version(5).stores({
+      profiles: "&id, createdAt, syncStatus",
       targets: "&id, profileId, syncStatus",
       foods: "&id, name, barcode, source, locale, syncStatus",
       foodLogs: "&id, foodId, mealType, loggedAt, syncStatus",
@@ -250,7 +250,7 @@ class MeBodyDB extends Dexie {
 }
 
 const DB_NAME = "MeBodyDB";
-const INIT_FLAG = "me_body_v6";
+const INIT_FLAG = "me_body_v7";
 
 let _db: MeBodyDB | null = null;
 let _initPromise: Promise<MeBodyDB> | null = null;
