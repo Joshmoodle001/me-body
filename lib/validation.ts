@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GOAL_TYPES, ACTIVITY_LEVELS, DIET_PREFERENCES, MEAL_TYPES } from "./constants";
+import { GOAL_TYPES, ACTIVITY_LEVELS, DIET_PREFERENCES, MEAL_TYPES, CALORIE_VISIBILITY, PREGNANCY_STATUSES } from "./constants";
 
 export const profileSchema = z.object({
   id: z.string().optional(),
@@ -15,6 +15,11 @@ export const profileSchema = z.object({
   dietPreference: z.enum(DIET_PREFERENCES).optional(),
   units: z.enum(["metric", "imperial"]).default("metric"),
   onboardingComplete: z.boolean().optional(),
+  calorieVisibility: z.enum(CALORIE_VISIBILITY).default("visible"),
+  cycleTracking: z.boolean().default(false),
+  pregnancyStatus: z.enum(PREGNANCY_STATUSES).default("none"),
+  chronicConditions: z.array(z.string()).default([]),
+  medications: z.array(z.string()).default([]),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   syncStatus: z.string().optional(),

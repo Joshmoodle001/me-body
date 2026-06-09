@@ -13,8 +13,8 @@ export default function WorkoutPage() {
   const [showNew, setShowNew] = useState(false);
   const [name, setName] = useState("Workout");
   const [type, setType] = useState("strength");
-  const [duration, setDuration] = useState(45);
-  const [effort, setEffort] = useState(7);
+  const [duration, setDuration] = useState("45");
+  const [effort, setEffort] = useState("7");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -22,7 +22,7 @@ export default function WorkoutPage() {
   useEffect(() => { loadWorkouts(); }, []);
 
   const handleSave = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true);
-    await saveWorkout({ name: name || "Workout", type, startedAt: new Date().toISOString(), durationMinutes: duration, perceivedEffort1To10: effort, notes });
+    await saveWorkout({ name: name || "Workout", type, startedAt: new Date().toISOString(), durationMinutes: Number(duration), perceivedEffort1To10: Number(effort), notes });
     setShowNew(false); setName("Workout"); setNotes(""); loadWorkouts(); setSaving(false);
   };
 
@@ -41,7 +41,7 @@ export default function WorkoutPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div><label className="input-label">Name</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" /></div>
               <div><label className="input-label">Type</label><select value={type} onChange={(e) => setType(e.target.value)} className="input"><option value="strength">Strength</option><option value="cardio">Cardio</option><option value="hiit">HIIT</option><option value="mobility">Mobility</option><option value="sport">Sport</option><option value="other">Other</option></select></div>
-              <div className="grid grid-cols-2 gap-3"><div><label className="input-label">Duration (min)</label><input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} min={1} className="input" /></div><div><label className="input-label">Effort (1-10)</label><input type="number" value={effort} onChange={(e) => setEffort(Number(e.target.value))} min={1} max={10} className="input" /></div></div>
+              <div className="grid grid-cols-2 gap-3"><div><label className="input-label">Duration (min)</label><input type="text" inputMode="numeric" value={duration} onChange={(e) => setDuration(e.target.value.replace(/\D/g,""))} className="input" /></div><div><label className="input-label">Effort (1-10)</label><input type="text" inputMode="numeric" value={effort} onChange={(e) => setEffort(e.target.value.replace(/\D/g,""))} className="input" /></div></div>
               <div><label className="input-label">Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="input" placeholder="Exercises, sets, reps..." /></div>
               <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowNew(false)} className="flex-1 py-3 rounded-[var(--radius-button)] font-semibold" style={{ background: "var(--card-muted)", color: "var(--text-secondary)" }}>Cancel</button><button type="submit" disabled={saving} className="flex-1 btn btn-primary py-3">{saving ? "Saving..." : "Save"}</button></div>
             </form>

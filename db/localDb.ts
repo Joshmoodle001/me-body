@@ -14,6 +14,11 @@ export interface DBProfile {
   dietPreference?: string;
   units: string;
   onboardingComplete: boolean;
+  calorieVisibility: "visible" | "hidden";
+  cycleTracking: boolean;
+  pregnancyStatus: "none" | "pregnant" | "postpartum" | "not_applicable";
+  chronicConditions: string[];
+  medications: string[];
   createdAt: string;
   updatedAt: string;
   syncStatus: string;
@@ -41,6 +46,7 @@ export interface DBFood {
   barcode?: string;
   name: string;
   brand?: string;
+  locale?: string;
   servingSizeG?: number;
   caloriesPer100g?: number;
   proteinPer100g?: number;
@@ -50,6 +56,9 @@ export interface DBFood {
   sugarPer100g?: number;
   sodiumPer100g?: number;
   confidenceScore: number;
+  nutrientCompleteness: number;
+  localeMatch: number;
+  portionCertainty: number;
   verified: boolean;
   rawJson?: string;
   createdAt: string;
@@ -95,6 +104,7 @@ export interface DBBodyMetric {
   sleepHours?: number;
   steps?: number;
   recordedAt: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -137,6 +147,56 @@ export interface DBHabitLog {
   syncStatus: string;
 }
 
+export interface DBSafetyFlag {
+  id: string;
+  profileId: string;
+  flagType: string;
+  severity: "info" | "warning" | "danger" | "emergency";
+  condition: string;
+  action: "pause" | "modify" | "refer" | "emergency";
+  message: string;
+  sourceRefs: string[];
+  active: boolean;
+  triggeredAt: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBContentItem {
+  id: string;
+  kind: string;
+  slug: string;
+  locale: string;
+  title: string;
+  summary: string;
+  body: string;
+  topicTags: string[];
+  audienceTags: string[];
+  evidenceLevel: string;
+  confidenceScore: number;
+  sourceRefs: string[];
+  reviewStatus: string;
+  version: number;
+  contentHash: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBProvenance {
+  id: string;
+  sourceId: string;
+  citationText: string;
+  sourceType: string;
+  licence: string;
+  url: string;
+  jurisdiction: string;
+  version: string;
+  retrievedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 class MeBodyDB extends Dexie {
   profiles!: Table<DBProfile, string>;
   targets!: Table<DBTargets, string>;
@@ -147,19 +207,25 @@ class MeBodyDB extends Dexie {
   workouts!: Table<DBWorkout, string>;
   habits!: Table<DBHabit, string>;
   habitLogs!: Table<DBHabitLog, string>;
+  safetyFlags!: Table<DBSafetyFlag, string>;
+  contentItems!: Table<DBContentItem, string>;
+  provenance!: Table<DBProvenance, string>;
 
   constructor() {
     super("MeBodyDB");
-    this.version(1).stores({
+    this.version(2).stores({
       profiles: "&id, syncStatus",
       targets: "&id, profileId, syncStatus",
-      foods: "&id, name, barcode, source, syncStatus",
+      foods: "&id, name, barcode, source, locale, syncStatus",
       foodLogs: "&id, foodId, mealType, loggedAt, syncStatus",
       waterLogs: "&id, loggedAt, syncStatus",
       bodyMetrics: "&id, recordedAt, syncStatus",
       workouts: "&id, startedAt, syncStatus",
       habits: "&id, syncStatus",
       habitLogs: "&id, habitId, completedAt, syncStatus",
+      safetyFlags: "&id, profileId",
+      contentItems: "&id, kind, slug, locale",
+      provenance: "&id, sourceId",
     });
   }
 }

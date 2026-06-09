@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import LoadingState from "@/components/ui/LoadingState";
-import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate } from "@/db/queries";
+import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate, getLatestBodyMetric, seedContentItems, seedProvenance } from "@/db/queries";
 import { calculateDailyNutrition } from "@/lib/calculations";
-import { generateInsights } from "@/lib/coaching";
+import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
+import { getContraindicationsForProfile } from "@/lib/safety";
+import { buildContentItems, buildProvenanceEntries } from "@/lib/contentSeed";
 import type { DBProfile, DBTargets } from "@/db/localDb";
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -17,6 +19,8 @@ export default function DashboardPage() {
   const [daily, setDaily] = useState({ calories: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0 });
   const [waterTotal, setWaterTotal] = useState(0);
   const [insights, setInsights] = useState<any[]>([]);
+  const [latestMetric, setLatestMetric] = useState<any>(null);
+  const [safetyFlags, setSafetyFlags] = useState<any[]>([]);
 
   const load = async () => {
     const p = await getProfile();
@@ -25,8 +29,14 @@ export default function DashboardPage() {
     const t = await getTargets(p.id);
     setTargets(t ?? null);
     const date = todayStr();
-    const [logs, waters] = await Promise.all([getFoodLogsForDate(date), getWaterLogsForDate(date)]);
+    const [logs, waters, metric] = await Promise.all([
+      getFoodLogsForDate(date),
+      getWaterLogsForDate(date),
+      getLatestBodyMetric(),
+    ]);
+    setLatestMetric(metric ?? null);
     setWaterTotal(waters.reduce((s, w) => s + w.amountMl, 0));
+
     const { db } = await import("@/db/localDb");
     const enriched = await Promise.all(logs.map(async (l) => {
       const food = await db.foods.get(l.foodId);
@@ -34,12 +44,33 @@ export default function DashboardPage() {
       return { calories: Math.round((food?.caloriesPer100g ?? 0) * f), proteinG: +(food?.proteinPer100g ?? 0) * f, carbsG: +(food?.carbsPer100g ?? 0) * f, fatG: +(food?.fatPer100g ?? 0) * f, fiberG: +(food?.fiberPer100g ?? 0) * f, loggedAt: l.loggedAt };
     }));
     setDaily(calculateDailyNutrition(enriched));
-    const coachInsights = generateInsights({ todayLogs: enriched, todayWaterMl: waters.reduce((s, w) => s + w.amountMl, 0), weightLogs: [], loggedDaysThisWeek: logs.length > 0 ? 1 : 0, yesterdayLogs: [], mealCount: logs.length, targets: t ?? undefined });
+
+    const contraindications = getContraindicationsForProfile(p);
+    setSafetyFlags(contraindications);
+
+    const coachInsights = generateInsights({
+      profile: p,
+      todayLogs: enriched,
+      todayWaterMl: waters.reduce((s, w) => s + w.amountMl, 0),
+      weightLogs: metric?.weightKg ? [{ weightKg: metric.weightKg, recordedAt: metric.recordedAt }] : [],
+      sleepHours: metric?.sleepHours,
+      steps: metric?.steps,
+      mood1To5: metric?.mood1To5,
+      loggedDaysThisWeek: logs.length > 0 ? 1 : 0,
+      yesterdayLogs: [],
+      mealCount: logs.length,
+      targets: t ?? undefined,
+    });
     setInsights(coachInsights);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    seedContentItems(buildContentItems()).catch(() => {});
+    seedProvenance(buildProvenanceEntries()).catch(() => {});
+  }, []);
 
   if (loading) return <div style={{ background: "var(--background)", minHeight: "100vh" }}><LoadingState /></div>;
 
@@ -54,6 +85,8 @@ export default function DashboardPage() {
   }
 
   const waterPct = Math.min(100, Math.round((waterTotal / targets.waterMl) * 100));
+  const hideCalories = profile?.calorieVisibility === "hidden";
+  const safetyAlerts = safetyFlags.filter((f: any) => f.riskLevel === "danger" || f.riskLevel === "warning");
 
   return (
     <div className="app-container">
@@ -70,26 +103,46 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Safety Alerts */}
+      {safetyAlerts.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {safetyAlerts.map((f: any) => (
+            <div key={f.id} className="card" style={{ background: "var(--ember-soft)", borderColor: "var(--ember-soft)" }}>
+              <div className="flex items-start gap-2">
+                <span className="text-base shrink-0 mt-0.5" style={{ color: "var(--ember)" }}>&#x26A0;&#xFE0F;</span>
+                <div>
+                  <p style={{ fontSize: "12px", fontWeight: 600, color: "var(--ember)", marginBottom: "0.125rem" }}>Health-aware guidance</p>
+                  <p style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{f.message}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Body Score Card */}
       <div className="card mb-4" style={{ background: "linear-gradient(135deg, var(--card) 0%, var(--background-soft) 100%)" }}>
         <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.75rem" }}>Today&apos;s Nutrition</p>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
-          {[
+            {[
             { label: "Calories", current: daily.calories, target: targets.calories, unit: "kcal", color: "var(--calories)", bg: "rgba(47,111,94,0.07)" },
             { label: "Protein", current: daily.proteinG, target: targets.proteinG, unit: "g", color: "var(--protein)", bg: "rgba(59,130,160,0.07)" },
             { label: "Carbs", current: daily.carbsG, target: targets.carbsG, unit: "g", color: "var(--carbs)", bg: "rgba(217,130,75,0.07)" },
             { label: "Fat", current: daily.fatG, target: targets.fatG, unit: "g", color: "var(--fat)", bg: "rgba(200,169,106,0.07)" },
-          ].map((m) => (
-            <div key={m.label} className="rounded-2xl p-2.5 sm:p-3.5" style={{ background: m.bg }}>
-              <p style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.125rem" }}>{m.label}</p>
-              <p style={{ fontSize: "clamp(16px, 4vw, 22px)", fontWeight: 700, color: m.color, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
-                {Math.round(m.current)}<span style={{ fontSize: "clamp(10px, 2vw, 13px)", fontWeight: 500, color: "var(--text-muted)", marginLeft: "2px" }}>/ {m.target} {m.unit}</span>
-              </p>
-              <div className="macro-bar mt-1.5">
-                <div className="macro-bar-fill" style={{ width: `${Math.min(100, Math.round((m.current / m.target) * 100))}%`, background: m.color }} />
+            ].map((m) => (
+              <div key={m.label} className="rounded-2xl p-2.5 sm:p-3.5" style={{ background: m.bg }}>
+                <p style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.125rem" }}>{m.label}</p>
+                <p style={{ fontSize: "clamp(16px, 4vw, 22px)", fontWeight: 700, color: m.color, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
+                  {hideCalories ? (m.label === "Calories" ? "..." : Math.round(m.current)) : Math.round(m.current)}
+                  <span style={{ fontSize: "clamp(10px, 2vw, 13px)", fontWeight: 500, color: "var(--text-muted)", marginLeft: "2px" }}>
+                    {hideCalories ? (m.label === "Calories" ? "" : `/${m.target} ${m.unit}`) : `/${m.target} ${m.unit}`}
+                  </span>
+                </p>
+                <div className="macro-bar mt-1.5">
+                  <div className="macro-bar-fill" style={{ width: `${Math.min(100, Math.round((m.current / (m.target || 1)) * 100))}%`, background: m.color }} />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
 
         {/* Water */}
@@ -114,14 +167,24 @@ export default function DashboardPage() {
 
       {/* Coach */}
       {insights.length > 0 && (
-        <div className="card mb-4" style={{ background: "var(--brand-soft)", borderColor: "var(--brand-soft)" }}>
-          <div className="flex items-start gap-2">
-            <span className="text-base shrink-0 mt-0.5" style={{ color: "var(--brand-dark)" }}>&#x2728;</span>
-            <div>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--brand-dark)", marginBottom: "0.125rem" }}>{insights[0].title}</p>
-              <p style={{ fontSize: "12px", color: "var(--brand)" }}>{insights[0].body}</p>
-            </div>
-          </div>
+        <div className="space-y-2 mb-4">
+          {filterBySerenity(insights, hasSafetyConcerns(insights) ? 3 : 1).map((insight: any) => {
+            const sevBg = insight.severity === "danger" ? "var(--error-soft)" : insight.severity === "warning" ? "var(--warning-soft)" : insight.severity === "positive" ? "var(--success-soft)" : "var(--brand-soft)";
+            const sevColor = insight.severity === "danger" ? "var(--error)" : insight.severity === "warning" ? "var(--warning)" : insight.severity === "positive" ? "var(--success)" : "var(--brand-dark)";
+            const sevBodyColor = insight.severity === "danger" ? "var(--error)" : insight.severity === "warning" ? "var(--warning)" : insight.severity === "positive" ? "var(--success)" : "var(--brand)";
+            const icon = insight.severity === "danger" ? "\u26A0\uFE0F" : insight.severity === "warning" ? "\u26A0" : insight.severity === "positive" ? "\u2728" : "\u2728";
+            return (
+              <div key={insight.id} className="card" style={{ background: sevBg, borderColor: sevBg }}>
+                <div className="flex items-start gap-2">
+                  <span className="text-base shrink-0 mt-0.5" style={{ color: sevColor }}>{icon}</span>
+                  <div>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: sevColor, marginBottom: "0.125rem" }}>{insight.title}</p>
+                    <p style={{ fontSize: "12px", color: sevBodyColor }}>{insight.body}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

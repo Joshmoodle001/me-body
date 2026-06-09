@@ -1,5 +1,5 @@
 export const APP_NAME = "Me Body";
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.2.0";
 
 export const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"] as const;
 export type MealType = (typeof MEAL_TYPES)[number];
@@ -15,6 +15,47 @@ export type DietPreference = (typeof DIET_PREFERENCES)[number];
 
 export const WORKOUT_TYPES = ["strength", "cardio", "hiit", "mobility", "sport", "other"] as const;
 export type WorkoutType = (typeof WORKOUT_TYPES)[number];
+
+export const CALORIE_VISIBILITY = ["visible", "hidden"] as const;
+export type CalorieVisibility = (typeof CALORIE_VISIBILITY)[number];
+
+export const PREGNANCY_STATUSES = ["none", "pregnant", "postpartum", "not_applicable"] as const;
+export type PregnancyStatus = (typeof PREGNANCY_STATUSES)[number];
+
+export const CHRONIC_CONDITIONS = [
+  "none",
+  "diabetes_type1",
+  "diabetes_type2",
+  "prediabetes",
+  "hypertension",
+  "ckd",
+  "heart_disease",
+  "thyroid_disorder",
+  "pcos",
+  "ibs",
+  "coeliac",
+  "lactose_intolerance",
+  "gout",
+  "anaemia",
+  "other",
+] as const;
+export type ChronicCondition = (typeof CHRONIC_CONDITIONS)[number];
+
+export const MEDICATION_CLASSES = [
+  "none",
+  "insulin",
+  "sulfonylurea",
+  "metformin",
+  "blood_pressure_meds",
+  "cholesterol_meds",
+  "antidepressant",
+  "antipsychotic",
+  "thyroid_meds",
+  "corticosteroid",
+  "beta_blocker",
+  "other",
+] as const;
+export type MedicationClass = (typeof MEDICATION_CLASSES)[number];
 
 export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentary: 1.2,

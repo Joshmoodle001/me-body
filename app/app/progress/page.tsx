@@ -51,10 +51,10 @@ export default function ProgressPage() {
             <h3 className="mb-4" style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)" }}>Log Body Metrics</h3>
             <form onSubmit={handleSave} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="input-label">Weight (kg)</label><input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder={latest?.weightKg?.toString() ?? ""} step={0.1} className="input" /></div>
-                <div><label className="input-label">Waist (cm)</label><input type="number" value={waist} onChange={(e) => setWaist(e.target.value)} placeholder={latest?.waistCm?.toString() ?? ""} step={0.1} className="input" /></div>
-                <div><label className="input-label">Sleep (hrs)</label><input type="number" value={sleep} onChange={(e) => setSleep(e.target.value)} placeholder={latest?.sleepHours?.toString() ?? ""} step={0.5} className="input" /></div>
-                <div><label className="input-label">Steps</label><input type="number" value={steps} onChange={(e) => setSteps(e.target.value)} placeholder={latest?.steps?.toString() ?? ""} className="input" /></div>
+                <div><label className="input-label">Weight (kg)</label><input type="text" inputMode="decimal" value={weight} onChange={(e)=>{let v=e.target.value.replace(/[^0-9.]/g,"");const p=v.split(".");if(p.length>2)v=p[0]+"."+p.slice(1).join("");setWeight(v)}} placeholder={latest?.weightKg?.toString() ?? ""} className="input" /></div>
+                <div><label className="input-label">Waist (cm)</label><input type="text" inputMode="decimal" value={waist} onChange={(e)=>{let v=e.target.value.replace(/[^0-9.]/g,"");const p=v.split(".");if(p.length>2)v=p[0]+"."+p.slice(1).join("");setWaist(v)}} placeholder={latest?.waistCm?.toString() ?? ""} className="input" /></div>
+                <div><label className="input-label">Sleep (hrs)</label><input type="text" inputMode="decimal" value={sleep} onChange={(e)=>{let v=e.target.value.replace(/[^0-9.]/g,"");const p=v.split(".");if(p.length>2)v=p[0]+"."+p.slice(1).join("");setSleep(v)}} placeholder={latest?.sleepHours?.toString() ?? ""} className="input" /></div>
+                <div><label className="input-label">Steps</label><input type="text" inputMode="numeric" value={steps} onChange={(e)=>setSteps(e.target.value.replace(/\D/g,""))} placeholder={latest?.steps?.toString() ?? ""} className="input" /></div>
               </div>
               <div><label className="input-label">Mood</label>
                 <div className="flex gap-2">{[1,2,3,4,5].map((n) => (

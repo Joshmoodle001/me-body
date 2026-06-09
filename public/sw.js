@@ -1,4 +1,4 @@
-const CACHE_NAME = "me-body-v1";
+const CACHE_NAME = "me-body-v2";
 const STATIC_ASSETS = ["/", "/offline", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

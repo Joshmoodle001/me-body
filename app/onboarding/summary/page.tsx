@@ -9,6 +9,8 @@ export default function SummaryPage() {
   const router = useRouter();
   const [targets, setTargets] = useState<ReturnType<typeof calculateMacroTargets> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const profile = {
@@ -23,30 +25,47 @@ export default function SummaryPage() {
       trainingDaysPerWeek: Number(sessionStorage.getItem("onboarding_trainingDays")) || 3,
       dietPreference: (sessionStorage.getItem("onboarding_dietPreference") ?? "any") as any,
       units: "metric" as const,
+      calorieVisibility: "visible" as const,
+      cycleTracking: false,
+      pregnancyStatus: "none" as const,
+      chronicConditions: [] as string[],
+      medications: [] as string[],
     };
     setTargets(calculateMacroTargets(profile));
   }, []);
 
   const handleFinish = async () => {
     setSaving(true);
-    const profileData = {
-      name: sessionStorage.getItem("onboarding_name") ?? "",
-      sex: (sessionStorage.getItem("onboarding_sex") ?? "male") as "male" | "female",
-      birthYear: Number(sessionStorage.getItem("onboarding_birthYear")) || 1990,
-      heightCm: Number(sessionStorage.getItem("onboarding_heightCm")) || 170,
-      currentWeightKg: Number(sessionStorage.getItem("onboarding_currentWeightKg")) || 70,
-      goalWeightKg: Number(sessionStorage.getItem("onboarding_goalWeightKg")) || 65,
-      activityLevel: sessionStorage.getItem("onboarding_activityLevel") ?? "moderate",
-      goalType: sessionStorage.getItem("onboarding_goal") ?? "fat_loss",
-      trainingDaysPerWeek: Number(sessionStorage.getItem("onboarding_trainingDays")) || 3,
-      dietPreference: sessionStorage.getItem("onboarding_dietPreference") ?? "any",
-      units: "metric" as const,
-      onboardingComplete: true as const,
-    };
-    const saved = await saveProfile(profileData);
-    if (targets) await saveTargets({ ...targets, profileId: saved.id, calculationMethod: "mifflin_st_jeor" });
-    sessionStorage.clear();
-    router.push("/app/dashboard");
+    setError(null);
+    try {
+      const profileData = {
+        name: sessionStorage.getItem("onboarding_name") ?? "",
+        sex: (sessionStorage.getItem("onboarding_sex") ?? "male") as "male" | "female",
+        birthYear: Number(sessionStorage.getItem("onboarding_birthYear")) || 1990,
+        heightCm: Number(sessionStorage.getItem("onboarding_heightCm")) || 170,
+        currentWeightKg: Number(sessionStorage.getItem("onboarding_currentWeightKg")) || 70,
+        goalWeightKg: Number(sessionStorage.getItem("onboarding_goalWeightKg")) || 65,
+        activityLevel: sessionStorage.getItem("onboarding_activityLevel") ?? "moderate",
+        goalType: sessionStorage.getItem("onboarding_goal") ?? "fat_loss",
+        trainingDaysPerWeek: Number(sessionStorage.getItem("onboarding_trainingDays")) || 3,
+        dietPreference: sessionStorage.getItem("onboarding_dietPreference") ?? "any",
+        units: "metric" as const,
+        onboardingComplete: true as const,
+        calorieVisibility: (sessionStorage.getItem("onboarding_calorieVisibility") ?? "visible") as "visible" | "hidden",
+        cycleTracking: sessionStorage.getItem("onboarding_cycleTracking") === "true",
+        pregnancyStatus: (sessionStorage.getItem("onboarding_pregnancyStatus") ?? "none") as "none" | "pregnant" | "postpartum" | "not_applicable",
+        chronicConditions: JSON.parse(sessionStorage.getItem("onboarding_chronicConditions") ?? "[]") as string[],
+        medications: JSON.parse(sessionStorage.getItem("onboarding_medications") ?? "[]") as string[],
+      };
+      const savedProfile = await saveProfile(profileData);
+      if (targets) await saveTargets({ ...targets, profileId: savedProfile.id, calculationMethod: "mifflin_st_jeor" });
+      sessionStorage.clear();
+      setSaved(true);
+      setTimeout(() => { router.push("/app/dashboard"); }, 1200);
+    } catch (e: any) {
+      setError(e?.message ?? "Could not save. Please try again.");
+      setSaving(false);
+    }
   };
 
   if (!targets) return <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}><p style={{ color: "var(--text-muted)" }}>Calculating targets...</p></div>;
@@ -62,7 +81,20 @@ export default function SummaryPage() {
           ))}
         </div>
         <p className="text-center mb-6" style={{ fontSize: "12px", color: "var(--text-muted)" }}>Suggested starting targets. Not medical prescriptions. Edit anytime in Settings.</p>
-        <button onClick={handleFinish} disabled={saving} className="w-full py-3.5 rounded-[var(--radius-button)] font-semibold text-white" style={{ background: "var(--brand)", opacity: saving ? 0.6 : 1 }}>{saving ? "Saving..." : "Finish & Go to Dashboard"}</button>
+        {saved && (
+          <div className="card mb-4 animate-fade-in" style={{ background: "var(--success-soft)", borderColor: "var(--success-soft)" }}>
+            <p style={{ color: "var(--success)", fontSize: "14px", fontWeight: 600, textAlign: "center" }}>Profile saved successfully. Redirecting...</p>
+          </div>
+        )}
+        <button onClick={handleFinish} disabled={saving || saved} className="w-full py-3.5 rounded-[var(--radius-button)] font-semibold text-white transition-all" style={{ background: saved ? "var(--success)" : saving ? "var(--brand)" : "var(--brand)", opacity: saving || saved ? (saved ? 1 : 0.7) : 1 }}>
+          {saved ? "\u2713 Profile Saved!" : saving ? "Saving..." : "Finish & Go to Dashboard"}
+        </button>
+        {error && (
+          <div className="card mt-3" style={{ background: "var(--error-soft)", borderColor: "var(--error-soft)" }}>
+            <p style={{ color: "var(--error)", fontSize: "14px" }}>{error}</p>
+            <button onClick={handleFinish} className="mt-2 font-semibold text-sm" style={{ color: "var(--error)" }}>Try Again</button>
+          </div>
+        )}
       </div>
     </div>
   );

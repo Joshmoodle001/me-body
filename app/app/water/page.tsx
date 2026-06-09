@@ -62,7 +62,7 @@ export default function WaterPage() {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); const ml = Number(customMl); if (ml > 0 && ml <= 5000) { addWater(ml); setCustomMl(""); } }} className="flex gap-2 mb-6">
-        <input type="number" value={customMl} onChange={(e) => setCustomMl(e.target.value)} placeholder="Custom amount (ml)" min={50} className="input flex-1" />
+        <input type="text" inputMode="numeric" value={customMl} onChange={(e) => setCustomMl(e.target.value.replace(/\D/g,""))} placeholder="Custom amount (ml)" className="input flex-1" />
         <button type="submit" disabled={!customMl} className="px-6 py-3 rounded-[var(--radius-button)] font-semibold text-sm text-white transition-opacity" style={{ background: "var(--water)", opacity: customMl ? 1 : 0.5 }}>Add</button>
       </form>
 

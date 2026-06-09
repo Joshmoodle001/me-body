@@ -19,7 +19,7 @@ export default function TargetsSettingsPage() {
 
   const handleReset = async () => {
     const p = await getProfile(); if (!p) return;
-    const profile = { name: p.name, sex: p.sex, birthYear: p.birthYear, heightCm: p.heightCm, currentWeightKg: p.currentWeightKg, goalWeightKg: p.goalWeightKg, activityLevel: p.activityLevel as any, goalType: p.goalType as any, trainingDaysPerWeek: p.trainingDaysPerWeek, dietPreference: p.dietPreference as any, units: p.units as any };
+    const profile = { name: p.name, sex: p.sex, birthYear: p.birthYear, heightCm: p.heightCm, currentWeightKg: p.currentWeightKg, goalWeightKg: p.goalWeightKg, activityLevel: p.activityLevel as any, goalType: p.goalType as any, trainingDaysPerWeek: p.trainingDaysPerWeek, dietPreference: p.dietPreference as any, units: p.units as any, calorieVisibility: p.calorieVisibility, cycleTracking: p.cycleTracking, pregnancyStatus: p.pregnancyStatus, chronicConditions: p.chronicConditions, medications: p.medications };
     const calc = calculateMacroTargets(profile);
     await saveTargets({ ...calc, profileId: p.id, calculationMethod: "mifflin_st_jeor" });
     setEditing({ ...calc, calculationMethod: "mifflin_st_jeor", id: editing?.id ?? "", profileId: p.id, createdAt: editing?.createdAt ?? "", updatedAt: new Date().toISOString(), syncStatus: "local" });
@@ -38,7 +38,7 @@ export default function TargetsSettingsPage() {
       {editing ? (
         <div className="space-y-4">
           {[{ id: "cal", label: "Calories (kcal/day)", key: "calories" as const, min: 500, max: 8000 },{ id: "prot", label: "Protein (g/day)", key: "proteinG" as const, min: 20, max: 500 },{ id: "carbs", label: "Carbs (g/day)", key: "carbsG" as const, min: 0, max: 1000 },{ id: "fat", label: "Fat (g/day)", key: "fatG" as const, min: 10, max: 300 },{ id: "fib", label: "Fiber (g/day)", key: "fiberG" as const, min: 0, max: 100 },{ id: "water", label: "Water (ml/day)", key: "waterMl" as const, min: 500, max: 10000 }].map((f) => (
-            <div key={f.id}><label className="input-label">{f.label}</label><input id={f.id} type="number" value={editing[f.key]} onChange={(e) => setEditing({ ...editing, [f.key]: Number(e.target.value) })} min={f.min} max={f.max} className="input" /></div>
+            <div key={f.id}><label className="input-label">{f.label}</label><input id={f.id} type="text" inputMode="numeric" value={editing[f.key]} onChange={(e) => { const v = e.target.value.replace(/\D/g,""); setEditing({ ...editing, [f.key]: v === "" ? 0 : Number(v) }); }} className="input" /></div>
           ))}
           <button onClick={handleSave} className="btn btn-primary w-full py-3.5">Save Targets</button>
           <button onClick={handleReset} className="w-full py-3 rounded-[var(--radius-button)] font-medium text-sm" style={{ background: "var(--card-muted)", color: "var(--text-secondary)" }}>Reset to Calculated</button>

@@ -1,0 +1,48 @@
+{
+  "description": "Food confidence scoring model for Me Body.",
+  "formula": "food_confidence = source_weight*0.35 + nutrient_completeness*0.25 + barcode_match*0.15 + locale_match*0.10 + portion_certainty*0.10 + user_confirmation*0.05 - conflict_penalty",
+  "sourceWeights": {
+    "usda_foundation": 0.95,
+    "usda_branded": 0.85,
+    "safoods": 0.90,
+    "foodfinder": 0.85,
+    "open_food_facts": 0.75,
+    "manual_trusted": 0.80,
+    "manual_unverified": 0.50,
+    "unknown": 0.25
+  },
+  "nutrientCompletenessScoring": {
+    "description": "Fraction of core nutrients present (calories, protein, carbs, fat, fiber, sugar, sodium)",
+    "maxScore": 1.0,
+    "minScore": 0.0
+  },
+  "barcodeMatchScoring": {
+    "withBarcode": 0.90,
+    "withoutBarcode": 0.50
+  },
+  "localeMatchScoring": {
+    "en-ZA": 0.90,
+    "otherWithLocalData": 0.75,
+    "noLocalMatch": 0.60
+  },
+  "portionCertaintyScoring": {
+    "withServingSize": 0.80,
+    "withoutServingSize": 0.60
+  },
+  "userConfirmation": {
+    "verified": 0.30,
+    "notVerified": 0.0
+  },
+  "conflictPenalty": {
+    "hasConflict": 0.15,
+    "noConflict": 0.0
+  },
+  "interpretation": {
+    "0.90_to_1.00": {"label": "highly-trusted", "badge": "Verified", "color": "success"},
+    "0.75_to_0.89": {"label": "usable", "badge": "Good", "color": "info"},
+    "0.50_to_0.74": {"label": "estimate", "badge": "Estimate", "color": "warning"},
+    "below_0.50": {"label": "unreliable", "badge": "Low confidence", "color": "error"}
+  },
+  "autoCoachingThreshold": 0.75,
+  "minThresholdForUse": 0.50
+}

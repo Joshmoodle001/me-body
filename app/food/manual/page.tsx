@@ -11,17 +11,17 @@ function ManualFoodForm() {
   const [name, setName] = useState(searchParams.get("name") ?? "");
   const [brand, setBrand] = useState("");
   const [barcode, setBarcode] = useState(searchParams.get("barcode") ?? "");
-  const [servingSizeG, setServingSizeG] = useState(100);
-  const [calories, setCalories] = useState(0);
-  const [protein, setProtein] = useState(0);
-  const [carbs, setCarbs] = useState(0);
-  const [fat, setFat] = useState(0);
-  const [fiber, setFiber] = useState(0);
+  const [servingSizeG, setServingSizeG] = useState("100");
+  const [calories, setCalories] = useState("0");
+  const [protein, setProtein] = useState("0");
+  const [carbs, setCarbs] = useState("0");
+  const [fat, setFat] = useState("0");
+  const [fiber, setFiber] = useState("0");
   const [verified, setVerified] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); if (!name.trim()) return; setSaving(true);
-    const food = await saveFood({ source: "manual", name: name.trim(), brand: brand.trim() || undefined, barcode: barcode.trim() || undefined, servingSizeG, caloriesPer100g: calories, proteinPer100g: protein, carbsPer100g: carbs, fatPer100g: fat, fiberPer100g: fiber, confidenceScore: verified ? 80 : 50, verified });
+    const food = await saveFood({ source: "manual", name: name.trim(), brand: brand.trim() || undefined, barcode: barcode.trim() || undefined, servingSizeG: Number(servingSizeG), caloriesPer100g: Number(calories), proteinPer100g: Number(protein), carbsPer100g: Number(carbs), fatPer100g: Number(fat), fiberPer100g: Number(fiber), confidenceScore: verified ? 80 : 50, nutrientCompleteness: 0.7, localeMatch: 0.6, portionCertainty: Number(servingSizeG) > 0 ? 0.8 : 0.6, verified });
     router.push(`/food/${food.id}`);
   };
 
@@ -34,11 +34,11 @@ function ManualFoodForm() {
           <div><label className="input-label">Brand</label><input id="fbrand" type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Optional" className="input" /></div>
           <div><label className="input-label">Barcode</label><input id="fbarcode" type="text" value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Optional" className="input" /></div>
         </div>
-        <div><label className="input-label">Serving Size (g)</label><input id="fserving" type="number" value={servingSizeG} onChange={(e) => setServingSizeG(Number(e.target.value))} min={1} className="input" /></div>
+        <div><label className="input-label">Serving Size (g)</label><input id="fserving" type="text" inputMode="numeric" value={servingSizeG} onChange={(e) => setServingSizeG(e.target.value.replace(/\D/g,""))} className="input" /></div>
         <fieldset><legend className="input-label">Per 100g</legend>
           <div className="grid grid-cols-2 gap-3">
             {[{ id: "fcal", label: "Calories (kcal)", value: calories, set: setCalories },{ id: "fprot", label: "Protein (g)", value: protein, set: setProtein },{ id: "fcarbs", label: "Carbs (g)", value: carbs, set: setCarbs },{ id: "ffat", label: "Fat (g)", value: fat, set: setFat },{ id: "ffiber", label: "Fiber (g)", value: fiber, set: setFiber }].map((f) => (
-              <div key={f.id}><label htmlFor={f.id} className="text-xs" style={{ color: "var(--text-muted)", marginBottom: "0.25rem", display: "block" }}>{f.label}</label><input id={f.id} type="number" value={f.value} onChange={(e) => f.set(Number(e.target.value))} min={0} className="input" /></div>
+              <div key={f.id}><label htmlFor={f.id} className="text-xs" style={{ color: "var(--text-muted)", marginBottom: "0.25rem", display: "block" }}>{f.label}</label><input id={f.id} type="text" inputMode="numeric" value={f.value} onChange={(e) => f.set(e.target.value.replace(/\D/g,""))} className="input" /></div>
             ))}
           </div>
         </fieldset>

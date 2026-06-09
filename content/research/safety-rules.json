@@ -1,0 +1,90 @@
+[
+  {
+    "id": "safety.chest-pain",
+    "trigger": "user_reports_chest_pain_during_exercise",
+    "severity": "emergency",
+    "appAction": "stop_normal_coaching",
+    "message": "Stop exercising immediately. Chest pain, pressure, or discomfort during activity needs urgent medical attention.",
+    "referToProfessional": true,
+    "emergencyLanguage": "Call emergency services now.",
+    "sourceRefs": ["nhlbi-sleep"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.fainting",
+    "trigger": "user_reports_fainting_during_exercise",
+    "severity": "emergency",
+    "appAction": "stop_normal_coaching",
+    "message": "Fainting or near-fainting during or after exercise is serious. Stop and get immediate medical help.",
+    "referToProfessional": true,
+    "emergencyLanguage": "Call emergency services or go to emergency department.",
+    "sourceRefs": ["nhlbi-sleep"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.severe-hypoglycemia",
+    "trigger": "diabetes_medication_plus_confusion_or_unconsciousness",
+    "severity": "emergency",
+    "appAction": "stop_normal_coaching",
+    "message": "If you have severe low blood glucose with confusion, inability to swallow, or loss of consciousness, this is an emergency.",
+    "referToProfessional": true,
+    "emergencyLanguage": "Someone should call for help and give glucagon if prescribed.",
+    "sourceRefs": ["niddk-weight-management"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.pregnancy-warning",
+    "trigger": "pregnancy_status_plus_warning_signs",
+    "severity": "emergency",
+    "appAction": "stop_normal_coaching",
+    "message": "Warning signs in pregnancy: severe headache, vision changes, sudden swelling, chest pain, trouble breathing, decreased fetal movement, vaginal bleeding, contractions, or fluid leaking.",
+    "referToProfessional": true,
+    "emergencyLanguage": "Get urgent medical help.",
+    "sourceRefs": ["acog-pregnancy-exercise"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.rapid-weight-loss",
+    "trigger": "unintentional_weight_loss > 5_percent_in_1_month",
+    "severity": "warning",
+    "appAction": "pause_weight_loss_coaching",
+    "message": "Your recent weight change is faster than expected. Rapid unintentional weight loss can have medical causes.",
+    "referToProfessional": true,
+    "emergencyLanguage": null,
+    "sourceRefs": ["niddk-weight-management"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.extreme-restriction",
+    "trigger": "avg_daily_calories < 800_for_3_plus_days",
+    "severity": "warning",
+    "appAction": "show_safety_message_hide_calorie_targets",
+    "message": "Very low intake over several days can be harmful and is not recommended without qualified professional supervision.",
+    "referToProfessional": true,
+    "emergencyLanguage": null,
+    "sourceRefs": ["niddk-weight-management"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.severe-hypertension",
+    "trigger": "bp_reading_over_180_120_with_symptoms",
+    "severity": "danger",
+    "appAction": "show_urgent_care_message",
+    "message": "If you have a blood pressure reading over 180/120 with headache, chest pain, shortness of breath, or vision changes, seek urgent medical care.",
+    "referToProfessional": true,
+    "emergencyLanguage": "Seek urgent medical care.",
+    "sourceRefs": ["who-sodium-potassium"],
+    "reviewStatus": "approved"
+  },
+  {
+    "id": "safety.eating-disorder-cues",
+    "trigger": "extreme_food_restriction_pattern_plus_anxiety_language",
+    "severity": "warning",
+    "appAction": "switch_to_calorie_hidden_mode_suggest_support",
+    "message": "Tracking patterns suggest this might be causing distress. Consider switching to our gentler calorie-hidden mode. Help is available.",
+    "referToProfessional": true,
+    "emergencyLanguage": null,
+    "sourceRefs": ["niddk-weight-management"],
+    "reviewStatus": "approved"
+  }
+]

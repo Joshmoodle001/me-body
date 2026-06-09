@@ -14,18 +14,18 @@ export default function FoodDetailPage() {
   const params = useParams(); const router = useRouter();
   const [food, setFood] = useState<DBFood | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(100);
+  const [quantity, setQuantity] = useState("100");
   const [mealType, setMealType] = useState<MealType>("snack");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { getFoodById(params.id as string).then((f) => { setFood(f ?? null); if (f?.servingSizeG) setQuantity(f.servingSizeG); setLoading(false); }); }, [params.id]);
+  useEffect(() => { getFoodById(params.id as string).then((f) => { setFood(f ?? null); if (f?.servingSizeG) setQuantity(String(f.servingSizeG)); setLoading(false); }); }, [params.id]);
 
   if (loading) return <div className="min-h-screen" style={{ background: "var(--background)" }}><LoadingState /></div>;
   if (!food) return <div className="app-container"><ErrorState message="Food not found." onRetry={() => router.back()} /></div>;
 
-  const nut = nutritionForQuantity({ calories: food.caloriesPer100g ?? 0, protein: food.proteinPer100g ?? 0, carbs: food.carbsPer100g ?? 0, fat: food.fatPer100g ?? 0, fiber: food.fiberPer100g ?? 0 }, quantity);
+  const nut = nutritionForQuantity({ calories: food.caloriesPer100g ?? 0, protein: food.proteinPer100g ?? 0, carbs: food.carbsPer100g ?? 0, fat: food.fatPer100g ?? 0, fiber: food.fiberPer100g ?? 0 }, Number(quantity));
 
-  const handleSave = async () => { setSaving(true); await saveFoodLog({ foodId: food.id, mealType, quantityG: quantity, servingLabel: quantity === food.servingSizeG ? `${food.servingSizeG}g serving` : `${quantity}g`, loggedAt: new Date().toISOString(), notes: "" }); router.push("/app/log"); };
+  const handleSave = async () => { setSaving(true); await saveFoodLog({ foodId: food.id, mealType, quantityG: Number(quantity), servingLabel: Number(quantity) === food.servingSizeG ? `${food.servingSizeG}g serving` : `${quantity}g`, loggedAt: new Date().toISOString(), notes: "" }); router.push("/app/log"); };
 
   const confBg = food.confidenceScore >= 85 ? "var(--success-soft)" : food.confidenceScore >= 65 ? "var(--warning-soft)" : "var(--error-soft)";
   const confColor = food.confidenceScore >= 85 ? "var(--success)" : food.confidenceScore >= 65 ? "var(--warning)" : "var(--error)";
@@ -48,7 +48,7 @@ export default function FoodDetailPage() {
       <div className="card mb-4">
         <h3 className="font-bold mb-3" style={{ color: "var(--text-primary)" }}>Log This Food</h3>
         <div className="space-y-3">
-          <div><label className="input-label">Quantity (g)</label><input id="quantity" type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} min={1} max={10000} className="input" /></div>
+          <div><label className="input-label">Quantity (g)</label><input id="quantity" type="text" inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g,""))} className="input" /></div>
           <div><label className="input-label">Meal</label><select id="mealType" value={mealType} onChange={(e) => setMealType(e.target.value as MealType)} className="input">{MEAL_TYPES.map((m) => (<option key={m} value={m} className="capitalize">{m}</option>))}</select></div>
           <div className="rounded-xl p-3" style={{ background: "var(--card-muted)" }}>
             <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>For {quantity}g:</p>

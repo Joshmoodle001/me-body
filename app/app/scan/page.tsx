@@ -36,7 +36,7 @@ export default function ScanPage() {
 
   const handleSave = async () => {
     if (!result) return;
-    await saveFood({ source: result.source, sourceId: result.sourceId, barcode: result.barcode, name: result.name, brand: result.brand, servingSizeG: result.servingSizeG, caloriesPer100g: result.caloriesPer100g, proteinPer100g: result.proteinPer100g, carbsPer100g: result.carbsPer100g, fatPer100g: result.fatPer100g, fiberPer100g: result.fiberPer100g, sugarPer100g: result.sugarPer100g, sodiumPer100g: result.sodiumPer100g, confidenceScore: result.confidenceScore, verified: false, rawJson: typeof result.raw === "object" ? JSON.stringify(result.raw) : undefined });
+    await saveFood({ source: result.source, sourceId: result.sourceId, barcode: result.barcode, name: result.name, brand: result.brand, servingSizeG: result.servingSizeG, caloriesPer100g: result.caloriesPer100g, proteinPer100g: result.proteinPer100g, carbsPer100g: result.carbsPer100g, fatPer100g: result.fatPer100g, fiberPer100g: result.fiberPer100g, sugarPer100g: result.sugarPer100g, sodiumPer100g: result.sodiumPer100g, confidenceScore: result.confidenceScore, nutrientCompleteness: 0.7, localeMatch: 0.6, portionCertainty: result.servingSizeG ? 0.8 : 0.6, verified: false, rawJson: typeof result.raw === "object" ? JSON.stringify(result.raw) : undefined });
     setSaved(true);
   };
 

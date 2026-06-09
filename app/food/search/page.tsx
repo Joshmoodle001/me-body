@@ -33,7 +33,7 @@ export default function FoodSearchPage() {
     let saved: DBFood;
     if ("source" in food && "confidenceScore" in food) {
       const nf = food as NormalizedFood;
-      saved = await saveFood({ source: nf.source, sourceId: nf.sourceId, barcode: nf.barcode, name: nf.name, brand: nf.brand, servingSizeG: nf.servingSizeG, caloriesPer100g: nf.caloriesPer100g, proteinPer100g: nf.proteinPer100g, carbsPer100g: nf.carbsPer100g, fatPer100g: nf.fatPer100g, fiberPer100g: nf.fiberPer100g, sugarPer100g: nf.sugarPer100g, sodiumPer100g: nf.sodiumPer100g, confidenceScore: nf.confidenceScore, verified: false });
+      saved = await saveFood({ source: nf.source, sourceId: nf.sourceId, barcode: nf.barcode, name: nf.name, brand: nf.brand, servingSizeG: nf.servingSizeG, caloriesPer100g: nf.caloriesPer100g, proteinPer100g: nf.proteinPer100g, carbsPer100g: nf.carbsPer100g, fatPer100g: nf.fatPer100g, fiberPer100g: nf.fiberPer100g, sugarPer100g: nf.sugarPer100g, sodiumPer100g: nf.sodiumPer100g, confidenceScore: nf.confidenceScore, nutrientCompleteness: 0.7, localeMatch: 0.6, portionCertainty: nf.servingSizeG ? 0.8 : 0.6, verified: false });
     } else { saved = food as DBFood; }
     router.push(`/food/${saved.id}`);
   };

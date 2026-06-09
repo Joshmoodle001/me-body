@@ -1,5 +1,5 @@
 import { db } from "./localDb";
-import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBHabit, DBHabitLog } from "./localDb";
+import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -31,6 +31,11 @@ export async function saveProfile(profile: Partial<DBProfile> & { name: string; 
     dietPreference: profile.dietPreference,
     units: profile.units ?? "metric",
     onboardingComplete: profile.onboardingComplete ?? true,
+    calorieVisibility: profile.calorieVisibility ?? "visible",
+    cycleTracking: profile.cycleTracking ?? false,
+    pregnancyStatus: profile.pregnancyStatus ?? "none",
+    chronicConditions: profile.chronicConditions ?? [],
+    medications: profile.medications ?? [],
     createdAt: existing?.createdAt ?? nowStr,
     updatedAt: nowStr,
     syncStatus: "local",
@@ -87,6 +92,7 @@ export async function saveFood(food: Omit<DBFood, "id" | "createdAt" | "updatedA
     barcode: food.barcode,
     name: food.name,
     brand: food.brand,
+    locale: food.locale,
     servingSizeG: food.servingSizeG,
     caloriesPer100g: food.caloriesPer100g,
     proteinPer100g: food.proteinPer100g,
@@ -96,6 +102,9 @@ export async function saveFood(food: Omit<DBFood, "id" | "createdAt" | "updatedA
     sugarPer100g: food.sugarPer100g,
     sodiumPer100g: food.sodiumPer100g,
     confidenceScore: food.confidenceScore,
+    nutrientCompleteness: food.nutrientCompleteness ?? 0,
+    localeMatch: food.localeMatch ?? 0,
+    portionCertainty: food.portionCertainty ?? 0,
     verified: food.verified,
     rawJson: food.rawJson,
     createdAt: nowStr,
@@ -234,6 +243,63 @@ export async function saveHabitLog(log: Omit<DBHabitLog, "id" | "createdAt" | "u
   return data;
 }
 
+// Safety Flags
+export async function getActiveSafetyFlags(profileId: string): Promise<DBSafetyFlag[]> {
+  return db.safetyFlags.where("profileId").equals(profileId).filter((f) => f.active).toArray();
+}
+
+export async function getSafetyFlag(id: string): Promise<DBSafetyFlag | undefined> {
+  return db.safetyFlags.get(id);
+}
+
+export async function saveSafetyFlag(flag: Omit<DBSafetyFlag, "id" | "createdAt" | "updatedAt">): Promise<DBSafetyFlag> {
+  const nowStr = now();
+  const data: DBSafetyFlag = { id: generateId(), ...flag, createdAt: nowStr, updatedAt: nowStr };
+  await db.safetyFlags.put(data);
+  return data;
+}
+
+export async function resolveSafetyFlag(id: string): Promise<void> {
+  await db.safetyFlags.update(id, { active: false, resolvedAt: now(), updatedAt: now() });
+}
+
+// Content Items
+export async function getContentItems(kind?: string, locale?: string): Promise<DBContentItem[]> {
+  let query = db.contentItems.toCollection();
+  if (kind) query = query.filter((c) => c.kind === kind);
+  if (locale) query = query.filter((c) => c.locale === locale);
+  return query.toArray();
+}
+
+export async function getContentBySlug(slug: string): Promise<DBContentItem | undefined> {
+  return db.contentItems.where("slug").equals(slug).first();
+}
+
+export async function seedContentItems(items: Omit<DBContentItem, "createdAt" | "updatedAt">[]): Promise<void> {
+  const nowStr = now();
+  for (const item of items) {
+    const exists = await db.contentItems.get(item.id);
+    if (!exists) {
+      await db.contentItems.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
+    }
+  }
+}
+
+// Provenance
+export async function getProvenanceBySource(sourceId: string): Promise<DBProvenance | undefined> {
+  return db.provenance.where("sourceId").equals(sourceId).first();
+}
+
+export async function seedProvenance(items: Omit<DBProvenance, "createdAt" | "updatedAt">[]): Promise<void> {
+  const nowStr = now();
+  for (const item of items) {
+    const exists = await db.provenance.get(item.id);
+    if (!exists) {
+      await db.provenance.put({ ...item, createdAt: nowStr, updatedAt: nowStr });
+    }
+  }
+}
+
 // Bulk clear
 export async function clearAllData(): Promise<void> {
   await db.profiles.clear();
@@ -245,4 +311,7 @@ export async function clearAllData(): Promise<void> {
   await db.workouts.clear();
   await db.habits.clear();
   await db.habitLogs.clear();
+  await db.safetyFlags.clear();
+  await db.contentItems.clear();
+  await db.provenance.clear();
 }
