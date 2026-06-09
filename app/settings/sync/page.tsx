@@ -1,35 +1,121 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = { title: "Sync | Me Body" };
+import { useEffect, useState } from "react";
+import PageHeader from "@/components/ui/PageHeader";
+import { fullSync, getSyncStatus, pushToCloud, pullFromCloud } from "@/lib/syncEngine";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SyncSettingsPage() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{ lastPushedAt: string | null; lastPulledAt: string | null }>({ lastPushedAt: null, lastPulledAt: null });
+  const [result, setResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const { data: { user: u } } = await supabase.auth.getUser();
+      setUser(u);
+      if (u) {
+        const s = await getSyncStatus();
+        setStatus(s);
+      }
+    })();
+  }, []);
+
+  const handleSync = async () => {
+    setLoading(true); setResult(null);
+    const r = await fullSync();
+    setResult(`Pushed ${r.pushed} records, pulled ${r.pulled} records.${r.error ? ` Error: ${r.error}` : ""}`);
+    const s = await getSyncStatus();
+    setStatus(s);
+    setLoading(false);
+  };
+
+  const handlePush = async () => {
+    setLoading(true); setResult(null);
+    const r = await pushToCloud();
+    setResult(`Pushed ${r.pushed} records.${r.error ? ` Error: ${r.error}` : ""}`);
+    const s = await getSyncStatus();
+    setStatus(s);
+    setLoading(false);
+  };
+
+  const handlePull = async () => {
+    setLoading(true); setResult(null);
+    const r = await pullFromCloud();
+    setResult(`Pulled ${r.pulled} records.${r.error ? ` Error: ${r.error}` : ""}`);
+    const s = await getSyncStatus();
+    setStatus(s);
+    setLoading(false);
+  };
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
   return (
-    <div className="app-container max-w-md mx-auto">
-      <Link href="/app/settings" className="text-sm font-semibold mb-4 inline-block" style={{ color: "var(--brand)" }}>&larr; Back</Link>
-      <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "1.5rem" }}>Sync</h1>
+    <div className="app-container">
+      <PageHeader title="Sync" subtitle="Cloud backup and multi-device sync" />
 
       <div className="space-y-4">
-        <div className="card">
-          <h2 className="font-bold mb-1" style={{ color: "var(--text-primary)" }}>Local-first by design</h2>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "0.75rem" }}>All your data is stored on your device. You can use Me Body fully offline without an account.</p>
-          <Link href="/settings/data" className="text-sm font-semibold" style={{ color: "var(--brand)" }}>Manage Data &rarr;</Link>
+        <div className="card" style={{ background: "var(--card-muted)" }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+            {user ? `Signed in as ${user.email}` : "Not signed in"}
+          </p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Your data stays local by default. Sync only when you choose to.
+          </p>
         </div>
 
-        <div className="card">
-          <h2 className="font-bold mb-1" style={{ color: "var(--text-primary)" }}>Optional Account Sync</h2>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "0.75rem" }}>Cloud sync with encrypted backup is planned. It will be completely optional.</p>
-          <div className="rounded-xl px-4 py-3 text-center" style={{ background: "var(--card-muted)" }}><p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Coming in v1.3</p></div>
-        </div>
+        {user && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="card text-center" style={{ background: "var(--card-muted)" }}>
+                <p className="text-xs font-semibold uppercase mb-1" style={{ color: "var(--text-muted)" }}>Last Push</p>
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                  {status.lastPushedAt ? new Date(status.lastPushedAt).toLocaleDateString() : "Never"}
+                </p>
+              </div>
+              <div className="card text-center" style={{ background: "var(--card-muted)" }}>
+                <p className="text-xs font-semibold uppercase mb-1" style={{ color: "var(--text-muted)" }}>Last Pull</p>
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                  {status.lastPulledAt ? new Date(status.lastPulledAt).toLocaleDateString() : "Never"}
+                </p>
+              </div>
+            </div>
 
-        <div className="card">
-          <h2 className="font-bold mb-1" style={{ color: "var(--text-primary)" }}>What sync will do</h2>
-          <ul className="list-disc list-inside space-y-1" style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-            <li>Encrypted backup of your logs and settings</li>
-            <li>Sync across your devices</li>
-            <li>Restore from backup if you switch devices</li>
-            <li>Share verified foods (optional)</li>
-          </ul>
+            {result && (
+              <div className="p-3 rounded-xl text-sm" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
+                {result}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-3">
+              <button onClick={handleSync} disabled={loading} className="btn btn-primary w-full">
+                {loading ? "Syncing..." : "Full Sync (Push & Pull)"}
+              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={handlePush} disabled={loading} className="btn btn-secondary">Push to Cloud</button>
+                <button onClick={handlePull} disabled={loading} className="btn btn-secondary">Pull from Cloud</button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {user && (
+          <div className="card" style={{ background: "var(--card-muted)" }}>
+            <p className="text-sm font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Account</p>
+            <button onClick={handleSignOut} className="btn btn-secondary w-full">Sign Out</button>
+          </div>
+        )}
+
+        <div className="card" style={{ background: "var(--card-muted)" }}>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Your data is stored locally on this device by default. Cloud sync lets you back up your progress and use Me Body across multiple devices. Synced data is encrypted in transit and stored in a private Supabase database you control.
+          </p>
         </div>
       </div>
     </div>
