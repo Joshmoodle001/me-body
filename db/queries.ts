@@ -18,7 +18,12 @@ function now(): string {
 
 // Profile
 export async function getProfile(): Promise<DBProfile | undefined> {
-  return (await db()).profiles.orderBy("createdAt").last();
+  try {
+    return (await db()).profiles.orderBy("createdAt").last();
+  } catch (e: any) {
+    console.error("[Queries] getProfile failed:", e?.message, e?.name, e?.stack);
+    throw e;
+  }
 }
 
 export async function saveProfile(profile: Partial<DBProfile> & { name: string; sex: "male" | "female"; birthYear: number; heightCm: number; currentWeightKg: number; activityLevel: string; goalType: string }): Promise<DBProfile> {

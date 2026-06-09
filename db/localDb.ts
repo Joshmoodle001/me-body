@@ -250,7 +250,7 @@ class MeBodyDB extends Dexie {
 }
 
 const DB_NAME = "MeBodyDB";
-const INIT_FLAG = "me_body_v5";
+const INIT_FLAG = "me_body_v6";
 
 let _db: MeBodyDB | null = null;
 let _initPromise: Promise<MeBodyDB> | null = null;
@@ -260,26 +260,50 @@ async function initDatabase(): Promise<MeBodyDB> {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    // Nuke old corrupted database - must complete before Dexie opens
     if (typeof window !== "undefined" && !window.sessionStorage.getItem(INIT_FLAG)) {
-      await new Promise<void>((resolve) => {
-        const req = window.indexedDB.deleteDatabase(DB_NAME);
-        req.onsuccess = () => { window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
-        req.onerror = () => { window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
-        req.onblocked = () => {
-          req.onblocked = () => {};
-          window.sessionStorage.setItem(INIT_FLAG, "1");
-          resolve();
-        };
-      });
+      console.log("[MeBodyDB] Deleting old database:", DB_NAME);
+      try {
+        await new Promise<void>((resolve) => {
+          const req = window.indexedDB.deleteDatabase(DB_NAME);
+          req.onsuccess = () => { console.log("[MeBodyDB] Old database deleted successfully"); window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
+          req.onerror = (ev) => { console.error("[MeBodyDB] Delete failed:", req.error); window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
+          req.onblocked = () => { console.warn("[MeBodyDB] Delete blocked — forcing close"); try { req.onblocked = () => {}; } catch {} resolve(); };
+        });
+      } catch (e) {
+        console.error("[MeBodyDB] Delete exception:", e);
+        window.sessionStorage.setItem(INIT_FLAG, "1");
+      }
     }
-    _db = new MeBodyDB();
-    return _db;
+
+    console.log("[MeBodyDB] Creating new database");
+    try {
+      _db = new MeBodyDB();
+      await _db.open();
+      console.log("[MeBodyDB] Database opened successfully");
+    } catch (e: any) {
+      console.error("[MeBodyDB] Failed to create/open database:", e?.message, e?.name, e?.stack);
+      // One more attempt: delete and retry
+      try { await _db?.delete(); } catch {}
+      try { await new Promise<void>((r) => { const req = window.indexedDB.deleteDatabase(DB_NAME); req.onsuccess = () => r(); req.onerror = () => r(); req.onblocked = () => r(); }); } catch {}
+      window.sessionStorage.removeItem(INIT_FLAG);
+      _db = null;
+      _initPromise = null;
+      // Retry once
+      _db = new MeBodyDB();
+      await _db.open();
+      console.log("[MeBodyDB] Database opened successfully on retry");
+    }
+    return _db!;
   })();
 
   return _initPromise;
 }
 
 export async function getDb(): Promise<MeBodyDB> {
-  return initDatabase();
+  try {
+    return await initDatabase();
+  } catch (e: any) {
+    console.error("[MeBodyDB] getDb failed:", e?.message, e?.name, e?.stack);
+    throw new Error(`Database init failed: ${e?.message ?? "unknown"}. Please clear your browser data for this site and refresh.`);
+  }
 }
