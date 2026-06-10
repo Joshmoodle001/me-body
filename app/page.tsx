@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left column */}
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5" style={{ background: "var(--gold-soft)", border: "1px solid rgba(255,197,107,0.20)", fontSize: "12px", fontWeight: 600, color: "var(--gold)" }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 animate-neon-pulse-gold" style={{ background: "var(--gold-soft)", border: "1px solid rgba(255,197,107,0.25)", fontSize: "12px", fontWeight: 600, color: "var(--gold)", boxShadow: "0 0 14px rgba(255,197,107,0.15)" }}>
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} />
               Midnight Ember
             </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
               { title: "Private, local-first", desc: "No ads. No third-party analytics. Your health data is not advertising inventory." },
               { title: "Install on your phone", desc: "Full Progressive Web App. Works offline. Add to your home screen." },
             ].map((f) => (
-              <div key={f.title} className="card card-interactive">
+              <div key={f.title} className="card card-interactive neon-outline-teal">
                 <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.375rem" }}>{f.title}</h3>
                 <p style={{ fontSize: "13px", lineHeight: "21px", color: "var(--text-muted)" }}>{f.desc}</p>
               </div>
@@ -164,7 +164,7 @@ export default function LandingPage() {
 
       {/* Privacy promise */}
       <section className="px-4 sm:px-6 pb-12 sm:pb-20">
-        <div className="max-w-3xl mx-auto rounded-[var(--radius-panel)] p-6 sm:p-10" style={{ background: "var(--card-muted)", border: "1px solid var(--border-strong)" }}>
+        <div className="max-w-3xl mx-auto rounded-[var(--radius-panel)] p-6 sm:p-10 neon-card-gold" style={{ background: "var(--card-muted)" }}>
           <h2 className="mb-3 sm:mb-4" style={{ fontSize: "clamp(22px, 5vw, 28px)", fontWeight: 700, color: "var(--text-primary)" }}>
             Your health data should not be treated like advertising inventory.
           </h2>

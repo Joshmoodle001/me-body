@@ -53,8 +53,8 @@ export default function HabitTrackerPage() {
         <div className="space-y-2">
           {habits.map((habit) => { const done = todayLogs.has(habit.id);
             return (
-              <button key={habit.id} onClick={() => toggleHabit(habit.id)} className="card-interactive card w-full flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: done ? "var(--teal)" : "var(--card-soft)", border: done ? "none" : "1px solid var(--border)" }}>
+              <button key={habit.id} onClick={() => toggleHabit(habit.id)} className={`card-interactive card w-full flex items-center gap-3 ${done ? "neon-outline-teal" : ""}`}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: done ? "var(--teal)" : "var(--card-soft)", border: done ? "none" : "1px solid var(--border)", boxShadow: done ? "0 0 14px rgba(45,212,191,0.35)" : "none" }}>
                   {done && <svg className="w-4 h-4" fill="none" stroke="#0F1A17" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </div>
                 <span className="text-sm font-semibold" style={{ color: done ? "var(--teal)" : "var(--text-primary)" }}>{habit.name}</span>

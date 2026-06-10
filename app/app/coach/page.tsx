@@ -81,9 +81,9 @@ export default function CoachPage() {
       )}
 
       {/* Coach intro */}
-      <div className="card card-glow mb-4" style={{ textAlign: "center" }}>
-        <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3 animate-pulse-glow" style={{ background: "var(--brand-soft)", border: "1px solid rgba(255,107,61,0.25)" }}>
-          <svg className="w-8 h-8" fill="none" stroke="var(--brand)" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round">
+      <div className="card card-glow-teal animate-neon-pulse-teal mb-4" style={{ textAlign: "center" }}>
+        <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style={{ background: "var(--brand-soft)", border: "1px solid rgba(255,107,61,0.25)", boxShadow: "0 0 20px rgba(255,107,61,0.15)" }}>
+          <svg className="w-8 h-8 neon-icon-ember" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round">
             <path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
           </svg>
         </div>
@@ -93,7 +93,7 @@ export default function CoachPage() {
 
       {/* Weekly Summary */}
       {weeklySummary && (
-        <div className="card mb-4" style={{ background: "var(--card-muted)" }}>
+        <div className="card neon-outline-teal mb-4" style={{ background: "var(--card-muted)" }}>
           <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>This Week</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <SummaryTile label="Days logged" value={`${weeklySummary.loggedDays}/7`} color="var(--gold)" />

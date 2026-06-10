@@ -72,9 +72,9 @@ export default function ProgressPage() {
       ) : (
         <div className="space-y-4">
           {latest?.weightKg && (
-            <div className="card card-glow" style={{ textAlign: "center" }}>
+            <div className="card card-glow-teal animate-neon-pulse-teal" style={{ textAlign: "center" }}>
               <p style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>Current Weight</p>
-              <span style={{ fontSize: "clamp(40px, 10vw, 56px)", fontWeight: 800, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{latest.weightKg}</span>
+              <span className="neon-text-teal" style={{ fontSize: "clamp(40px, 10vw, 56px)", fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{latest.weightKg}</span>
               <span style={{ fontSize: "18px", color: "var(--text-muted)", marginLeft: "6px" }}>kg</span>
               {trend.direction !== "not_enough_data" && (
                 <p style={{ fontSize: "14px", color: trend.direction === "decreasing" ? "var(--teal)" : trend.direction === "increasing" ? "var(--warning)" : "var(--text-secondary)", marginTop: "0.75rem", fontWeight: 600 }}>
@@ -97,7 +97,7 @@ export default function ProgressPage() {
 
 function MetricTile({ label, value, unit, color }: { label: string; value: string | number; unit: string; color: string }) {
   return (
-    <div className="card text-center py-3" style={{ background: "var(--card-muted)" }}>
+    <div className="card text-center py-3 neon-outline-teal" style={{ background: "var(--card-muted)" }}>
       <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
       <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 750, color }} className="tabular-nums">{value}</p>
       <p style={{ fontSize: "10px", color: "var(--text-muted)" }}>{unit}</p>

@@ -25,8 +25,8 @@ export default function SettingsPage() {
 
       <div className="space-y-4">
         {profile && (
-          <div className="card card-glow" style={{ textAlign: "center" }}>
-            <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-xl font-bold mb-3" style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "2px solid var(--brand-soft)" }}>
+          <div className="card card-glow-ember animate-neon-pulse-ember" style={{ textAlign: "center" }}>
+            <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-xl font-bold mb-3" style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "2px solid var(--brand-soft)", boxShadow: "0 0 18px rgba(255,107,61,0.20)" }}>
               {profile.name.charAt(0).toUpperCase()}
             </div>
             <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{profile.name}</p>

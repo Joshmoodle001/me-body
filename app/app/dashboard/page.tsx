@@ -174,11 +174,13 @@ export default function DashboardPage() {
       )}
 
       {/* Wellness Score */}
-      <div className="card card-glow mb-4" style={{ textAlign: "center" }}>
-        <p style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+      <div className="card card-glow-ember animate-neon-pulse-ember mb-4" style={{ textAlign: "center" }}>
+        <p className="neon-text-gold" style={{ fontSize: "16px", fontWeight: 700, marginBottom: "0.75rem" }}>
           {profile.name.split(" ")[0]}, you&apos;re on fire
         </p>
-        <WellnessRing score={wellnessScore} size={140} />
+        <div className="neon-ring-teal">
+          <WellnessRing score={wellnessScore} size={140} />
+        </div>
         <p style={{ fontSize: "12px", color: "var(--teal)", marginTop: "0.5rem", fontWeight: 600 }}>
           &#x2191; {wellnessScore > 70 ? "Strong consistency" : "Building momentum"}
         </p>
@@ -187,12 +189,12 @@ export default function DashboardPage() {
       {/* Macro Cards */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
         {[
-          { label: "Calories", current: daily.calories, target: targets.calories, unit: "kcal", color: "var(--calories)" },
-          { label: "Protein", current: daily.proteinG, target: targets.proteinG, unit: "g", color: "var(--protein)" },
-          { label: "Carbs", current: daily.carbsG, target: targets.carbsG, unit: "g", color: "var(--carbs)" },
-          { label: "Fat", current: daily.fatG, target: targets.fatG, unit: "g", color: "var(--fat)" },
+          { label: "Calories", current: daily.calories, target: targets.calories, unit: "kcal", color: "var(--calories)", neonBorder: "neon-outline-gold", neonBar: "neon-bar-gold" },
+          { label: "Protein", current: daily.proteinG, target: targets.proteinG, unit: "g", color: "var(--protein)", neonBorder: "neon-outline-teal", neonBar: "neon-bar-teal" },
+          { label: "Carbs", current: daily.carbsG, target: targets.carbsG, unit: "g", color: "var(--carbs)", neonBorder: "", neonBar: "" },
+          { label: "Fat", current: daily.fatG, target: targets.fatG, unit: "g", color: "var(--fat)", neonBorder: "neon-outline-ember", neonBar: "neon-bar-ember" },
         ].map((m) => (
-          <div key={m.label} className="card" style={{ background: "var(--card-muted)" }}>
+          <div key={m.label} className={`card card-interactive ${m.neonBorder}`} style={{ background: "var(--card-muted)" }}>
             <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>{m.label}</p>
             <p style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 750, color: m.color, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
               {hideCalories && m.label === "Calories" ? "..." : Math.round(m.current).toLocaleString()}
@@ -201,7 +203,7 @@ export default function DashboardPage() {
               </span>
             </p>
             <div className="macro-bar mt-1.5">
-              <div className="macro-bar-fill" style={{ width: `${Math.min(100, Math.round((m.current / (m.target || 1)) * 100))}%`, background: m.color, boxShadow: `0 0 8px ${m.color}` }} />
+              <div className={`macro-bar-fill ${m.neonBar}`} style={{ width: `${Math.min(100, Math.round((m.current / (m.target || 1)) * 100))}%`, background: m.color }} />
             </div>
           </div>
         ))}
@@ -209,13 +211,13 @@ export default function DashboardPage() {
 
       {/* Water + Today's Focus row */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
-        <div className="card" style={{ background: "var(--card-muted)" }}>
+        <div className="card neon-outline-water" style={{ background: "var(--card-muted)" }}>
           <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>Water</p>
-          <p style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 750, color: "var(--water)", fontVariantNumeric: "tabular-nums" }}>
+          <p className="neon-text-water" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 750, fontVariantNumeric: "tabular-nums" }}>
             {waterTotal}ml
           </p>
           <div className="macro-bar mt-1.5">
-            <div className="macro-bar-fill" style={{ width: `${waterPct}%`, background: "var(--water)", boxShadow: "0 0 8px var(--water)" }} />
+            <div className="macro-bar-fill neon-bar-water" style={{ width: `${waterPct}%`, background: "var(--water)" }} />
           </div>
           <div className="flex gap-1.5 mt-2">
             {[250, 500].map((ml) => (
@@ -224,7 +226,7 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-        <div className="card" style={{ background: "linear-gradient(135deg, var(--teal-soft), var(--gold-soft))" }}>
+        <div className="card neon-outline-teal" style={{ background: "linear-gradient(135deg, var(--teal-soft), var(--gold-soft))" }}>
           <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>Today&apos;s Focus</p>
           <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>
             {daily.proteinG < (targets.proteinG * 0.4) ? "Start logging" :
@@ -272,8 +274,8 @@ export default function DashboardPage() {
           { label: "Add", href: "/food/manual", svg: "M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" },
           { label: "Weight", href: "/app/progress", svg: "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" },
         ].map((a) => (
-          <Link key={a.href} href={a.href} className="flex flex-col items-center gap-1 py-2.5 rounded-2xl transition-all" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <svg className="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand)" }}>
+          <Link key={a.href} href={a.href} className="flex flex-col items-center gap-1 py-2.5 rounded-2xl transition-all card-interactive" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <svg className="w-[18px] h-[18px] sm:w-5 sm:h-5 neon-icon-ember" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d={a.svg} />
             </svg>
             <span style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-secondary)" }}>{a.label}</span>
@@ -289,7 +291,7 @@ export default function DashboardPage() {
           { label: "Workout", href: "/workout" },
           { label: "Coach", href: "/app/coach" },
         ].map((a) => (
-          <Link key={a.href} href={a.href} className="text-center py-2.5 rounded-xl text-xs font-semibold transition-colors" style={{ background: "var(--card-muted)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+          <Link key={a.href} href={a.href} className="text-center py-2.5 rounded-xl text-xs font-semibold transition-colors card-interactive" style={{ background: "var(--card-muted)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
             {a.label}
           </Link>
         ))}

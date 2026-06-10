@@ -42,9 +42,9 @@ export default function LogPage() {
 
       {/* Macro summary bar */}
       {foodLogs.length > 0 && (
-        <div className="card mb-4" style={{ background: "var(--card-muted)" }}>
+        <div className="card neon-outline-gold mb-4" style={{ background: "var(--card-muted)" }}>
           <div className="flex items-center justify-between">
-            <div><span className="text-xs uppercase font-semibold" style={{ color: "var(--text-muted)" }}>Calories</span><p className="text-xl font-bold tabular-nums" style={{ color: "var(--calories)" }}>{totalCal}</p></div>
+            <div><span className="text-xs uppercase font-semibold" style={{ color: "var(--text-muted)" }}>Calories</span><p className="text-xl font-bold tabular-nums neon-text-gold">{totalCal}</p></div>
             <div className="text-right"><span className="text-xs uppercase font-semibold" style={{ color: "var(--text-muted)" }}>Meals</span><p className="text-xl font-bold tabular-nums" style={{ color: "var(--brand)" }}>{foodLogs.length}</p></div>
           </div>
         </div>
@@ -58,8 +58,8 @@ export default function LogPage() {
             const items = grouped[meal]; if (items.length === 0) return null;
             const mealCal = items.reduce((s, l) => s + Math.round((l.food?.caloriesPer100g ?? 0) * l.quantityG / 100), 0);
             return (
-              <div key={meal} className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border)", background: "var(--card)" }}>
-                <div className="px-5 py-3 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border)", background: "var(--card-muted)" }}>
+              <div key={meal} className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border-strong)", background: "var(--card)", boxShadow: "0 0 20px rgba(255,197,107,0.04)" }}>
+                <div className="px-5 py-3 flex justify-between items-center neon-border-b-gold" style={{ borderBottom: "1px solid var(--border)", background: "var(--card-muted)" }}>
                   <h3 className="text-sm font-bold capitalize" style={{ color: "var(--text-primary)" }}>{meal}</h3>
                   <span style={{ fontSize: "13px", fontWeight: 650, color: "var(--gold)", fontVariantNumeric: "tabular-nums" }}>{mealCal} kcal</span>
                 </div>

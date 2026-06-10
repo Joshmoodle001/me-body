@@ -31,10 +31,18 @@ export default function BottomNav() {
             }}
             aria-current={isActive ? "page" : undefined}
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isActive ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className={`w-5 h-5 sm:w-6 sm:h-6 ${isActive ? "neon-icon-gold" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={isActive ? 2.2 : 1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d={item.svg} />
             </svg>
-            <span style={{ fontSize: "10px", fontWeight: isActive ? 700 : 500, lineHeight: 1 }}>{item.label}</span>
+            <span className={isActive ? "neon-text-gold" : ""} style={{ fontSize: "10px", fontWeight: isActive ? 700 : 500, lineHeight: 1 }}>{item.label}</span>
           </Link>
         );
       })}

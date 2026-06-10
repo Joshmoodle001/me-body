@@ -457,3 +457,184 @@ button, a, input, select, textarea, [role="button"] { min-height: 44px; min-widt
   background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
   margin: 1.5rem 0;
 }
+
+/* ========================================
+   NEON FX SYSTEM
+   ======================================== */
+
+/* Neon text — soft glow behind colored text */
+.neon-text-ember {
+  color: var(--brand);
+  text-shadow: 0 0 12px rgba(255, 107, 61, 0.45), 0 0 28px rgba(255, 107, 61, 0.18);
+}
+.neon-text-teal {
+  color: var(--teal);
+  text-shadow: 0 0 12px rgba(45, 212, 191, 0.40), 0 0 28px rgba(45, 212, 191, 0.16);
+}
+.neon-text-gold {
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 197, 107, 0.40), 0 0 28px rgba(255, 197, 107, 0.16);
+}
+.neon-text-water {
+  color: var(--water);
+  text-shadow: 0 0 12px rgba(108, 215, 255, 0.45), 0 0 28px rgba(108, 215, 255, 0.16);
+}
+
+/* Neon border outlines — subtle glowing edge */
+.neon-outline-ember {
+  border: 1px solid rgba(255, 107, 61, 0.30);
+  box-shadow: 0 0 14px rgba(255, 107, 61, 0.12), inset 0 0 14px rgba(255, 107, 61, 0.04);
+}
+.neon-outline-teal {
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.10), inset 0 0 14px rgba(45, 212, 191, 0.04);
+}
+.neon-outline-gold {
+  border: 1px solid rgba(255, 197, 107, 0.28);
+  box-shadow: 0 0 14px rgba(255, 197, 107, 0.10), inset 0 0 14px rgba(255, 197, 107, 0.04);
+}
+.neon-outline-water {
+  border: 1px solid rgba(108, 215, 255, 0.25);
+  box-shadow: 0 0 14px rgba(108, 215, 255, 0.10), inset 0 0 14px rgba(108, 215, 255, 0.04);
+}
+
+/* Neon border bottom — single-edge glow for headers / tabs */
+.neon-border-b-ember {
+  border-bottom: 2px solid rgba(255, 107, 61, 0.45);
+  box-shadow: 0 2px 16px rgba(255, 107, 61, 0.14);
+}
+.neon-border-b-teal {
+  border-bottom: 2px solid rgba(45, 212, 191, 0.40);
+  box-shadow: 0 2px 16px rgba(45, 212, 191, 0.12);
+}
+.neon-border-b-gold {
+  border-bottom: 2px solid rgba(255, 197, 107, 0.40);
+  box-shadow: 0 2px 16px rgba(255, 197, 107, 0.12);
+}
+
+/* Neon glow cards — stronger than card-glow, color-specific */
+.neon-card-ember {
+  background: var(--card);
+  border: 1px solid rgba(255, 107, 61, 0.22);
+  box-shadow: var(--shadow-card), 0 0 40px rgba(255, 107, 61, 0.10);
+}
+.neon-card-teal {
+  background: var(--card);
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  box-shadow: var(--shadow-card), 0 0 40px rgba(45, 212, 191, 0.08);
+}
+.neon-card-gold {
+  background: var(--card);
+  border: 1px solid rgba(255, 197, 107, 0.20);
+  box-shadow: var(--shadow-card), 0 0 40px rgba(255, 197, 107, 0.08);
+}
+
+/* Neon ring glow — for progress circles and wellness rings */
+.neon-ring-ember {
+  filter: drop-shadow(0 0 8px rgba(255, 107, 61, 0.50)) drop-shadow(0 0 18px rgba(255, 107, 61, 0.18));
+}
+.neon-ring-teal {
+  filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.45)) drop-shadow(0 0 18px rgba(45, 212, 191, 0.16));
+}
+.neon-ring-gold {
+  filter: drop-shadow(0 0 8px rgba(255, 197, 107, 0.45)) drop-shadow(0 0 18px rgba(255, 197, 107, 0.16));
+}
+
+/* Neon macro bar fill — enhanced glow */
+.neon-bar-ember {
+  box-shadow: 0 0 12px rgba(255, 107, 61, 0.55), 0 0 2px rgba(255, 107, 61, 0.30);
+}
+.neon-bar-teal {
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.50), 0 0 2px rgba(45, 212, 191, 0.25);
+}
+.neon-bar-gold {
+  box-shadow: 0 0 12px rgba(255, 197, 107, 0.50), 0 0 2px rgba(255, 197, 107, 0.25);
+}
+.neon-bar-water {
+  box-shadow: 0 0 12px rgba(108, 215, 255, 0.55), 0 0 2px rgba(108, 215, 255, 0.30);
+}
+
+/* Neon icon — small icon glow */
+.neon-icon-ember { color: var(--brand); filter: drop-shadow(0 0 6px rgba(255,107,61,0.50)); }
+.neon-icon-teal  { color: var(--teal);  filter: drop-shadow(0 0 6px rgba(45,212,191,0.45)); }
+.neon-icon-gold  { color: var(--gold);  filter: drop-shadow(0 0 6px rgba(255,197,107,0.45)); }
+
+/* Neon pulse — animated glow breathing */
+@keyframes neon-pulse-ember {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 107, 61, 0.18), 0 0 28px rgba(255, 107, 61, 0.06); }
+  50%      { box-shadow: 0 0 20px rgba(255, 107, 61, 0.35), 0 0 40px rgba(255, 107, 61, 0.12); }
+}
+@keyframes neon-pulse-teal {
+  0%, 100% { box-shadow: 0 0 12px rgba(45, 212, 191, 0.14), 0 0 24px rgba(45, 212, 191, 0.05); }
+  50%      { box-shadow: 0 0 18px rgba(45, 212, 191, 0.30), 0 0 36px rgba(45, 212, 191, 0.10); }
+}
+@keyframes neon-pulse-gold {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 197, 107, 0.14), 0 0 24px rgba(255, 197, 107, 0.05); }
+  50%      { box-shadow: 0 0 18px rgba(255, 197, 107, 0.30), 0 0 36px rgba(255, 197, 107, 0.10); }
+}
+.animate-neon-pulse-ember { animation: neon-pulse-ember 2.5s ease-in-out infinite; }
+.animate-neon-pulse-teal  { animation: neon-pulse-teal 2.5s ease-in-out infinite; }
+.animate-neon-pulse-gold  { animation: neon-pulse-gold 2.5s ease-in-out infinite; }
+
+/* Neon underline — animated glowing underline */
+.neon-underline-ember {
+  position: relative;
+}
+.neon-underline-ember::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand), var(--gold), transparent);
+  box-shadow: 0 0 10px rgba(255, 107, 61, 0.40);
+  animation: neon-underline-shift 3s ease-in-out infinite;
+}
+@keyframes neon-underline-shift {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Neon spot — ambient background glow accent */
+.neon-spot-ember {
+  position: relative;
+}
+.neon-spot-ember::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255,107,61,0.18), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.neon-spot-teal {
+  position: relative;
+}
+.neon-spot-teal::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(45,212,191,0.14), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Enhanced card-glow variants */
+.card-glow-ember {
+  box-shadow: var(--shadow-card), 0 0 60px rgba(255, 107, 61, 0.10);
+}
+.card-glow-teal {
+  box-shadow: var(--shadow-card), 0 0 60px rgba(45, 212, 191, 0.08);
+}
+.card-glow-gold {
+  box-shadow: var(--shadow-card), 0 0 60px rgba(255, 197, 107, 0.08);
+}

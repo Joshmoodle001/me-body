@@ -30,13 +30,13 @@ export default function WaterPage() {
     <div className="app-container">
       <PageHeader title="Water" subtitle={todayStr()} />
 
-      <div className="card mb-6" style={{ background: "linear-gradient(135deg, rgba(108,215,255,0.08), rgba(108,215,255,0.02))", borderColor: "rgba(108,215,255,0.15)" }}>
+      <div className="card neon-card-teal mb-6" style={{ background: "linear-gradient(135deg, rgba(108,215,255,0.08), rgba(108,215,255,0.02))", borderColor: "rgba(108,215,255,0.15)" }}>
         <div className="flex items-center gap-4 mb-3">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(108,215,255,0.12)" }}>
-            <span className="text-2xl font-bold" style={{ color: "var(--water)" }}>{pct}%</span>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(108,215,255,0.12)", boxShadow: "0 0 18px rgba(108,215,255,0.20)" }}>
+            <span className="text-2xl font-bold neon-text-water">{pct}%</span>
           </div>
           <div className="flex-1">
-            <div className="macro-bar mb-1.5"><div className="macro-bar-fill" style={{ width: `${pct}%`, background: "var(--water)", boxShadow: "0 0 10px var(--water)" }} /></div>
+            <div className="macro-bar mb-1.5"><div className="macro-bar-fill neon-bar-water" style={{ width: `${pct}%`, background: "var(--water)" }} /></div>
             <div className="flex justify-between text-xs"><span className="font-semibold" style={{ color: "var(--water)" }}>{totalWater}ml</span><span style={{ color: "var(--text-muted)" }}>{targetMl}ml</span></div>
           </div>
         </div>

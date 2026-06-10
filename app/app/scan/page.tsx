@@ -42,8 +42,8 @@ export default function ScanPage() {
       <PageHeader title="Scan Barcode" subtitle="Look up a food by its barcode" />
 
       {!showScanner && (
-        <button onClick={() => setShowScanner(true)} className="w-full mb-4 py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all" style={{ background: "var(--card)", border: "1px solid var(--border-strong)", color: "var(--brand)", boxShadow: "var(--glow-ember)" }}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2m4 0v-2m-8 2v-2m4 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+        <button onClick={() => setShowScanner(true)} className="w-full mb-4 py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all neon-outline-ember animate-neon-pulse-ember" style={{ background: "var(--card)", color: "var(--brand)" }}>
+          <svg className="w-5 h-5 neon-icon-ember" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2m4 0v-2m-8 2v-2m4 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
           Open Camera Scanner
         </button>
       )}
@@ -78,7 +78,7 @@ export default function ScanPage() {
       )}
 
       {result && (
-        <div className="card card-glow">
+        <div className="card neon-card-teal">
           <h3 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)" }}>{result.name}</h3>
           {result.brand && <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "0.25rem" }}>{result.brand}</p>}
           <div className="mt-3 mb-4 flex flex-wrap gap-2">
