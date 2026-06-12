@@ -1,0 +1,213 @@
+[
+  {
+    "id": "meal.balanced-pap-bowl",
+    "locale": "en-ZA",
+    "name": "Balanced Pap Bowl",
+    "mealType": "dinner",
+    "goalTags": ["weight-loss", "maintenance", "family-meal"],
+    "dietPatternTags": ["omnivore", "budget"],
+    "components": {
+      "starch": ["pap", "rice", "samp"],
+      "protein": ["chicken", "lean mince", "beans", "pilchards"],
+      "vegetables": ["chakalaka", "spinach", "cabbage", "mixed veg"],
+      "fat": ["small oil portion", "avocado when available"]
+    },
+    "portionRules": {
+      "proteinAnchor": "1 palm-sized portion",
+      "starchDefault": "1 cupped hand",
+      "vegDefault": "2 fists"
+    },
+    "swapRules": ["swap pap for brown rice for more fiber", "swap chicken for beans for budget/vegetarian"],
+    "confidenceScore": 0.84,
+    "sourceRefs": ["safoods-samrc", "sa-obesity-strategy"]
+  },
+  {
+    "id": "meal.high-protein-breakfast",
+    "locale": "en-ZA",
+    "name": "High-Protein Breakfast",
+    "mealType": "breakfast",
+    "goalTags": ["muscle-gain", "maintenance", "fat-loss"],
+    "dietPatternTags": ["omnivore"],
+    "components": {
+      "protein": ["eggs", "maas/amasi", "yoghurt"],
+      "carbs": ["oats", "wholegrain toast", "fruit"],
+      "fat": ["small nut portion", "avocado"]
+    },
+    "portionRules": {
+      "proteinAnchor": "2 eggs or 1 cup yoghurt/maas",
+      "carbDefault": "1 slice toast or 1/2 cup oats",
+      "fruit": "1 piece"
+    },
+    "swapRules": ["swap eggs for tofu scramble (vegetarian)", "use amasi for local SA probiotic option"],
+    "confidenceScore": 0.86,
+    "sourceRefs": ["niddk-weight-management", "acsm-resistance-2026"]
+  },
+  {
+    "id": "meal.budget-diabetes-lunch",
+    "locale": "en-ZA",
+    "name": "Budget Diabetes-Aware Lunch",
+    "mealType": "lunch",
+    "goalTags": ["maintenance", "fat-loss"],
+    "dietPatternTags": ["diabetes-aware", "budget"],
+    "components": {
+      "protein": ["beans", "lentils", "pilchards", "egg"],
+      "starch": ["brown bread slice", "small rice portion"],
+      "vegetables": ["non-starchy vegetables"]
+    },
+    "portionRules": {
+      "protein": "1/2 cup beans/lentils or 1 pilchard tin",
+      "starch": "1 slice or 1/2 cup",
+      "veg": "2 fists"
+    },
+    "swapRules": ["use tinned fish for shelf-stable protein", "add morogo/wild spinach for local SA green"],
+    "confidenceScore": 0.82,
+    "sourceRefs": ["sa-obesity-strategy", "safoods-samrc"]
+  },
+  {
+    "id": "meal.vegetarian-samp-supper",
+    "locale": "en-ZA",
+    "name": "Vegetarian Samp and Beans Supper",
+    "mealType": "dinner",
+    "goalTags": ["maintenance", "family-meal"],
+    "dietPatternTags": ["vegetarian", "budget"],
+    "components": {
+      "base": ["samp and beans", "lentil stew"],
+      "vegetables": ["carrots", "spinach", "tomato"],
+      "fat": ["small oil"]
+    },
+    "portionRules": {
+      "base": "1 to 1.5 cups",
+      "veg": "2 fists"
+    },
+    "swapRules": ["add chakalaka for spice", "use dried beans for lower cost"],
+    "confidenceScore": 0.83,
+    "sourceRefs": ["safoods-samrc", "sa-obesity-strategy"]
+  },
+  {
+    "id": "meal.quick-shift-worker",
+    "locale": "en-ZA",
+    "name": "Quick Shift-Worker Meal",
+    "mealType": "lunch",
+    "goalTags": ["maintenance", "performance"],
+    "dietPatternTags": ["quick-prep", "portable"],
+    "components": {
+      "main": ["sandwich/wrap with protein"],
+      "sides": ["fruit", "yoghurt or milk", "nuts/peanut butter"]
+    },
+    "portionRules": {
+      "main": "1 sandwich or wrap",
+      "fruit": "1 piece",
+      "dairy": "1 small yoghurt or 200ml milk",
+      "nuts": "small handful"
+    },
+    "swapRules": ["use amasi drink for local SA option", "swap bread for wholemeal roti"],
+    "confidenceScore": 0.80,
+    "sourceRefs": ["sa-obesity-strategy"]
+  },
+  {
+    "id": "meal.pilchards-tomato-bean",
+    "locale": "en-ZA",
+    "name": "Pilchards and Tomato Bean Bowl",
+    "mealType": "dinner",
+    "goalTags": ["fat-loss", "maintenance", "budget"],
+    "dietPatternTags": ["budget", "omnivore"],
+    "components": {
+      "base": ["pilchards", "beans", "onion", "tomato", "spices"],
+      "starch": ["pap", "rice"],
+      "vegetables": ["spinach"]
+    },
+    "portionRules": {
+      "protein": "1 small tin pilchards + 1/2 cup beans",
+      "starch": "1 cupped hand",
+      "veg": "1-2 fists"
+    },
+    "swapRules": ["use tinned tuna if pilchards unavailable", "add chilli for spice"],
+    "confidenceScore": 0.81,
+    "sourceRefs": ["safoods-samrc"]
+  },
+  {
+    "id": "meal.chakalaka-potato",
+    "locale": "en-ZA",
+    "name": "Chakalaka Yoghurt Loaded Potato",
+    "mealType": "lunch",
+    "goalTags": ["maintenance", "fat-loss"],
+    "dietPatternTags": ["vegetarian", "budget"],
+    "components": {
+      "base": ["baked potato"],
+      "topping": ["chakalaka", "plain yoghurt"],
+      "side": ["salad"]
+    },
+    "portionRules": {
+      "potato": "1 large baked potato",
+      "chakalaka": "1/2 cup",
+      "yoghurt": "2 tbsp plain yoghurt",
+      "salad": "large handful"
+    },
+    "swapRules": ["use sweet potato for more fiber", "add beans for extra protein"],
+    "confidenceScore": 0.82,
+    "sourceRefs": ["safoods-samrc"]
+  },
+  {
+    "id": "meal.amasi-oats-breakfast",
+    "locale": "en-ZA",
+    "name": "Amasi / Oats / Fruit Breakfast",
+    "mealType": "breakfast",
+    "goalTags": ["maintenance", "fat-loss"],
+    "dietPatternTags": ["budget", "quick-prep"],
+    "components": {
+      "base": ["oats", "amasi or maas"],
+      "fruit": ["banana", "apple", "seasonal fruit"],
+      "extra": ["small handful nuts optional"]
+    },
+    "portionRules": {
+      "oats": "1/2 cup dry oats",
+      "amasi": "1/2 to 3/4 cup",
+      "fruit": "1 piece or 1/2 cup"
+    },
+    "swapRules": ["use milk if amasi unavailable", "add cinnamon for flavour without sugar"],
+    "confidenceScore": 0.83,
+    "sourceRefs": ["safoods-samrc"]
+  },
+  {
+    "id": "meal.chicken-rice-prep",
+    "locale": "en-ZA",
+    "name": "Chicken / Rice / Veg Prep Bowl",
+    "mealType": "lunch",
+    "goalTags": ["muscle-gain", "performance"],
+    "dietPatternTags": ["meal-prep", "omnivore"],
+    "components": {
+      "protein": ["chicken breast", "chicken thigh"],
+      "starch": ["brown rice", "white rice"],
+      "vegetables": ["broccoli", "green beans", "mixed vegetables"],
+      "sauce": ["light soy", "lemon", "spices"]
+    },
+    "portionRules": {
+      "protein": "1 palm (120-150g cooked)",
+      "starch": "1 cupped hand cooked rice",
+      "veg": "2 fists"
+    },
+    "swapRules": ["swap chicken for lean beef strips", "add avocado for healthy fat"],
+    "confidenceScore": 0.85,
+    "sourceRefs": ["acsm-resistance-2026"]
+  },
+  {
+    "id": "meal.beans-samp-bowl",
+    "locale": "en-ZA",
+    "name": "Beans / Samp / Vegetable Bowl",
+    "mealType": "dinner",
+    "goalTags": ["maintenance", "fat-loss", "family-meal"],
+    "dietPatternTags": ["vegetarian", "budget", "high-fiber"],
+    "components": {
+      "base": ["samp", "sugar beans"],
+      "vegetables": ["carrots", "onion", "tomato", "spinach"],
+      "flavour": ["garlic", "herbs", "stock"]
+    },
+    "portionRules": {
+      "base": "1.5 cups cooked samp and beans",
+      "veg": "1-2 fists"
+    },
+    "swapRules": ["add butternut for sweetness", "use lentils instead of beans"],
+    "confidenceScore": 0.84,
+    "sourceRefs": ["safoods-samrc", "sa-obesity-strategy"]
+  }
+]

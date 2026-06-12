@@ -1,0 +1,23 @@
+{
+  "name": "Me Body",
+  "short_name": "Me Body",
+  "description": "Your private body intelligence app. Track food, habits, workouts, and progress without shame.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F3EA",
+  "theme_color": "#2F6F5E",
+  "orientation": "portrait",
+  "categories": ["health", "fitness", "nutrition", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
