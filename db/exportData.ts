@@ -2,7 +2,7 @@ import { getDb } from "./localDb";
 import { getDeviceIdentity } from "@/lib/identity";
 
 export async function exportAllData(): Promise<Record<string, unknown>> {
-  const [profiles, targets, foods, foodLogs, waterLogs, bodyMetrics, workouts, habits, habitLogs] = await Promise.all([
+  const [profiles, targets, foods, foodLogs, waterLogs, bodyMetrics, workouts, workoutSets, habits, habitLogs, dayCompletions] = await Promise.all([
     (await getDb()).profiles.toArray(),
     (await getDb()).targets.toArray(),
     (await getDb()).foods.toArray(),
@@ -10,8 +10,10 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     (await getDb()).waterLogs.filter((l) => !l.deletedAt).toArray(),
     (await getDb()).bodyMetrics.filter((m) => !m.deletedAt).toArray(),
     (await getDb()).workouts.filter((w) => !w.deletedAt).toArray(),
+    (await getDb()).workoutSets.filter((s) => !s.deletedAt).toArray(),
     (await getDb()).habits.filter((h) => !h.deletedAt).toArray(),
     (await getDb()).habitLogs.filter((l) => !l.deletedAt).toArray(),
+    (await getDb()).dayCompletions.toArray(),
   ]);
 
   let sourceDevice: { deviceId: string; displayName: string } | undefined;
@@ -20,7 +22,7 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   return {
     appName: "Me Body",
     exportedAt: new Date().toISOString(),
-    version: "0.1.0",
+    version: "0.2.0",
     sourceDevice,
     data: {
       profiles,
@@ -30,8 +32,10 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
       waterLogs,
       bodyMetrics,
       workouts,
+      workoutSets,
       habits,
       habitLogs,
+      dayCompletions,
     },
   };
 }
@@ -62,6 +66,8 @@ export async function importJSONData(json: string): Promise<{ success: boolean; 
     if (data.workouts?.length) await (await getDb()).workouts.bulkPut(data.workouts);
     if (data.habits?.length) await (await getDb()).habits.bulkPut(data.habits);
     if (data.habitLogs?.length) await (await getDb()).habitLogs.bulkPut(data.habitLogs);
+    if (data.workoutSets?.length) await (await getDb()).workoutSets.bulkPut(data.workoutSets);
+    if (data.dayCompletions?.length) await (await getDb()).dayCompletions.bulkPut(data.dayCompletions);
 
     return { success: true, message: "Data imported successfully." };
   } catch {

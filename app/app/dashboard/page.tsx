@@ -9,6 +9,7 @@ import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
 import { getContraindicationsForProfile } from "@/lib/safety";
 import { buildContentItems, buildProvenanceEntries } from "@/lib/contentSeed";
+import { DAY_TYPE_MACRO_OFFSET } from "@/lib/constants";
 import type { DBProfile, DBTargets } from "@/db/localDb";
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -131,13 +132,22 @@ export default function DashboardPage() {
       </div>
     );
   }
+  const multiplier = DAY_TYPE_MACRO_OFFSET[dayType] ?? 1.0;
+  const adjustedTargets = targets ? {
+    calories: Math.round(targets.calories * multiplier),
+    proteinG: targets.proteinG,
+    carbsG: Math.round(targets.carbsG * multiplier),
+    fatG: Math.round(targets.fatG * multiplier),
+    fiberG: targets.fiberG,
+    waterMl: targets.waterMl,
+  } : null;
 
-  const waterPct = Math.min(100, Math.round((waterTotal / targets.waterMl) * 100));
+  const waterPct = Math.min(100, Math.round((waterTotal / (adjustedTargets?.waterMl || targets.waterMl)) * 100));
   const hideCalories = profile?.calorieVisibility === "hidden";
   const safetyAlerts = safetyFlags.filter((f: any) => f.riskLevel === "danger" || f.riskLevel === "warning");
   const wellnessScore = Math.min(100, Math.round(
-    ((daily.proteinG / (targets.proteinG || 1)) * 35 +
-    (daily.calories > 0 ? Math.min(1, daily.calories / (targets.calories || 1)) * 25 : 15) +
+    ((daily.proteinG / (adjustedTargets?.proteinG || 1)) * 35 +
+    (daily.calories > 0 ? Math.min(1, daily.calories / (adjustedTargets?.calories || 1)) * 25 : 15) +
     ((waterPct / 100) * 20) +
     (daily.fiberG >= 15 ? 20 : (daily.fiberG / 15) * 20))
   ));
@@ -261,10 +271,10 @@ export default function DashboardPage() {
       {/* Macro Cards */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
         {[
-          { label: "Calories", current: daily.calories, target: targets.calories, unit: "kcal", color: "var(--calories)", neonBorder: "neon-outline-gold", neonBar: "neon-bar-gold" },
-          { label: "Protein", current: daily.proteinG, target: targets.proteinG, unit: "g", color: "var(--protein)", neonBorder: "neon-outline-teal", neonBar: "neon-bar-teal" },
-          { label: "Carbs", current: daily.carbsG, target: targets.carbsG, unit: "g", color: "var(--carbs)", neonBorder: "", neonBar: "" },
-          { label: "Fat", current: daily.fatG, target: targets.fatG, unit: "g", color: "var(--fat)", neonBorder: "neon-outline-ember", neonBar: "neon-bar-ember" },
+          { label: "Calories", current: daily.calories, target: adjustedTargets?.calories ?? targets.calories, unit: "kcal", color: "var(--calories)", neonBorder: "neon-outline-gold", neonBar: "neon-bar-gold" },
+          { label: "Protein", current: daily.proteinG, target: adjustedTargets?.proteinG ?? targets.proteinG, unit: "g", color: "var(--protein)", neonBorder: "neon-outline-teal", neonBar: "neon-bar-teal" },
+          { label: "Carbs", current: daily.carbsG, target: adjustedTargets?.carbsG ?? targets.carbsG, unit: "g", color: "var(--carbs)", neonBorder: "", neonBar: "" },
+          { label: "Fat", current: daily.fatG, target: adjustedTargets?.fatG ?? targets.fatG, unit: "g", color: "var(--fat)", neonBorder: "neon-outline-ember", neonBar: "neon-bar-ember" },
         ].map((m) => (
           <div key={m.label} className={`card card-interactive ${m.neonBorder}`} style={{ background: "var(--card-muted)" }}>
             <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>{m.label}</p>
@@ -301,13 +311,13 @@ export default function DashboardPage() {
         <div className="card neon-outline-teal" style={{ background: "linear-gradient(135deg, var(--teal-soft), var(--gold-soft))" }}>
           <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>Today&apos;s Focus</p>
           <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>
-            {daily.proteinG < (targets.proteinG * 0.4) ? "Start logging" :
-             daily.proteinG < targets.proteinG ? `Hit your protein goal` :
+            {daily.proteinG < (adjustedTargets!.proteinG * 0.4) ? "Start logging" :
+             daily.proteinG < adjustedTargets!.proteinG ? `Hit your protein goal` :
              "Stay consistent"}
           </p>
           <p style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.3 }}>
-            {daily.proteinG < (targets.proteinG * 0.4) ? "Log your first meal to build momentum." :
-             daily.proteinG < targets.proteinG ? `You're ${targets.proteinG - Math.round(daily.proteinG)}g away from your daily protein target.` :
+            {daily.proteinG < (adjustedTargets!.proteinG * 0.4) ? "Log your first meal to build momentum." :
+             daily.proteinG < adjustedTargets!.proteinG ? `You're ${adjustedTargets!.proteinG - Math.round(daily.proteinG)}g away from your daily protein target.` :
              "Protein is on track. Focus on water and recovery."}
           </p>
         </div>
