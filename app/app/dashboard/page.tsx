@@ -9,6 +9,7 @@ import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
 import { getContraindicationsForProfile } from "@/lib/safety";
 import { buildContentItems, buildProvenanceEntries } from "@/lib/contentSeed";
+import { seedAccountFoods } from "@/lib/accountSeed";
 import { DAY_TYPE_MACRO_OFFSET } from "@/lib/constants";
 import type { DBProfile, DBTargets } from "@/db/localDb";
 
@@ -119,6 +120,7 @@ export default function DashboardPage() {
   useEffect(() => {
     seedContentItems(buildContentItems()).catch(() => {});
     seedProvenance(buildProvenanceEntries()).catch(() => {});
+    seedAccountFoods().catch(() => {});
   }, []);
 
   if (loading) return <div style={{ background: "var(--background)", minHeight: "100vh" }}><LoadingState /></div>;
