@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { calculateMacroTargets } from "@/lib/calculations";
 import { saveProfile, saveTargets } from "@/db/queries";
+import { pushProfileToCloud } from "@/lib/syncEngine";
 
 export default function SummaryPage() {
   const router = useRouter();
@@ -59,6 +60,8 @@ export default function SummaryPage() {
       };
       const savedProfile = await saveProfile(profileData);
       if (targets) await saveTargets({ ...targets, profileId: savedProfile.id, calculationMethod: "mifflin_st_jeor" });
+      // Sync to Supabase so profile survives across devices
+      pushProfileToCloud().catch(() => {});
       sessionStorage.clear();
       setSaved(true);
       setTimeout(() => { router.push("/app/dashboard"); }, 1200);
