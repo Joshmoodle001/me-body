@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 
 export default function BodyPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("onboarding_name") ?? "";
+    return "";
+  });
   const [sex, setSex] = useState<"male" | "female">("male");
   const [birthYear, setBirthYear] = useState("1990");
   const [heightCm, setHeightCm] = useState("170");

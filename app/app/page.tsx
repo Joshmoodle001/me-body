@@ -28,15 +28,14 @@ export default function AppRoot() {
         } else {
           router.replace("/onboarding");
         }
-      } catch (e) {
-        console.error("[AppShell] DB error:", e);
+      } catch {
         router.replace("/onboarding");
       }
     })();
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
       <LoadingState message="Loading..." />
     </div>
   );
