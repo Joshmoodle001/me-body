@@ -55,6 +55,7 @@ export default function SummaryPage() {
         pregnancyStatus: (sessionStorage.getItem("onboarding_pregnancyStatus") ?? "none") as any,
         chronicConditions: JSON.parse(sessionStorage.getItem("onboarding_chronicConditions") ?? "[]") as string[],
         medications: JSON.parse(sessionStorage.getItem("onboarding_medications") ?? "[]") as string[],
+        dayType: "training" as const,
       };
       const savedProfile = await saveProfile(profileData);
       if (targets) await saveTargets({ ...targets, profileId: savedProfile.id, calculationMethod: "mifflin_st_jeor" });

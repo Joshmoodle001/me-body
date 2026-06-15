@@ -346,5 +346,65 @@ export function buildContentItems(): Omit<DBContentItem, "createdAt" | "updatedA
     ["safoods-samrc", "sa-obesity-strategy"]
   );
 
+  mealTemplate("training-breakfast", "Training day breakfast", "breakfast",
+    JSON.stringify({
+      structure: { protein: ["eggs", "chicken breast", "maas/amasi"], carbs: ["oats", "rice", "wholegrain bread"], fat: ["small nut butter", "avocado"] },
+      portion: { protein: "30-35g protein anchor", carbs: "1 cupped hand", fat: "thumb-sized" },
+      notes: "Higher carb breakfast for training days. Supports morning workouts and glycogen stores.",
+    }),
+    ["training", "muscle-gain", "performance"],
+    ["niddk-weight-management", "acsm-resistance-2026"]
+  );
+
+  mealTemplate("training-lunch", "Training day lunch", "lunch",
+    JSON.stringify({
+      structure: { protein: ["chicken breast", "lean beef", "fish", "beans"], carbs: ["rice", "pasta", "potatoes", "pap"], vegetables: ["mixed veg", "salad", "chakalaka"] },
+      portion: { protein: "1.5 palm-sized", carbs: "1.5 cupped hands", veg: "2 fists" },
+      notes: "Main training day meal. Higher carbs to support afternoon/evening training sessions.",
+    }),
+    ["training", "muscle-gain", "performance"],
+    ["niddk-weight-management", "acsm-resistance-2026"]
+  );
+
+  mealTemplate("training-dinner", "Training day dinner", "dinner",
+    JSON.stringify({
+      structure: { protein: ["chicken", "fish", "lean mince", "eggs"], carbs: ["rice", "pap", "sweet potato"], vegetables: ["spinach", "broccoli", "mixed veg"] },
+      portion: { protein: "1.5 palm-sized", carbs: "1 cupped hand", veg: "2 fists" },
+      notes: "Recovery-focused dinner. Protein and moderate carbs to support overnight repair.",
+    }),
+    ["training", "muscle-gain", "fat-loss"],
+    ["niddk-weight-management", "acsm-resistance-2026"]
+  );
+
+  mealTemplate("rest-breakfast", "Rest day breakfast", "breakfast",
+    JSON.stringify({
+      structure: { protein: ["eggs", "maas/amasi", "protein shake"], carbs: ["fruit", "small oats portion"], fat: ["avocado", "nuts"] },
+      portion: { protein: "30-35g protein anchor", carbs: "half cupped hand", fat: "thumb-sized" },
+      notes: "Lower carb, higher fat breakfast for rest days. Keeps insulin steady while maintaining protein.",
+    }),
+    ["rest", "fat-loss", "maintenance"],
+    ["niddk-weight-management"]
+  );
+
+  mealTemplate("rest-lunch", "Rest day lunch", "lunch",
+    JSON.stringify({
+      structure: { protein: ["chicken", "tuna", "eggs", "lentils"], vegetables: ["large salad", "roasted veg", "spinach"], fat: ["olive oil", "avocado"] },
+      portion: { protein: "1.5 palm-sized", veg: "3 fists", fat: "thumb-sized" },
+      notes: "Protein-forward rest day lunch. More vegetables, less starch. Keeps calories lower naturally.",
+    }),
+    ["rest", "fat-loss", "maintenance"],
+    ["niddk-weight-management"]
+  );
+
+  mealTemplate("rest-dinner", "Rest day dinner", "dinner",
+    JSON.stringify({
+      structure: { protein: ["chicken", "fish", "lean mince", "beans"], vegetables: ["spinach", "cabbage", "mixed veg", "morogo"], fat: ["oil", "avocado"] },
+      portion: { protein: "1.5 palm-sized", veg: "3 fists", fat: "thumb-sized", carbs: "optional half cupped hand" },
+      notes: "Rest day dinner with optional carb. Focus on protein and vegetables. Add small carb portion if hungry.",
+    }),
+    ["rest", "fat-loss", "maintenance"],
+    ["safoods-samrc", "niddk-weight-management"]
+  );
+
   return items;
 }

@@ -1,5 +1,5 @@
 import { getDb } from "./localDb";
-import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBWorkoutSet, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance } from "./localDb";
+import type { DBProfile, DBTargets, DBFood, DBFoodLog, DBWaterLog, DBBodyMetric, DBWorkout, DBWorkoutSet, DBHabit, DBHabitLog, DBSafetyFlag, DBContentItem, DBProvenance, DBDayCompletion } from "./localDb";
 
 let _db: Awaited<ReturnType<typeof getDb>> | null = null;
 async function db(): Promise<Awaited<ReturnType<typeof getDb>>> {
@@ -56,6 +56,7 @@ export async function saveProfile(profile: Partial<DBProfile> & { name: string; 
     pregnancyStatus: profile.pregnancyStatus ?? "none",
     chronicConditions: profile.chronicConditions ?? [],
     medications: profile.medications ?? [],
+    dayType: profile.dayType ?? "training",
     createdAt: existing?.createdAt ?? nowStr,
     updatedAt: nowStr,
     syncStatus: "local",
@@ -342,6 +343,69 @@ export async function seedProvenance(items: Omit<DBProvenance, "createdAt" | "up
   }
 }
 
+// Day Completions
+export async function getDayCompletion(date: string, profileId: string): Promise<DBDayCompletion | undefined> {
+  return (await db()).dayCompletions.where("date").equals(date).and((d) => d.profileId === profileId).first();
+}
+
+export async function getDayCompletions(profileId: string, limit = 90): Promise<DBDayCompletion[]> {
+  return (await db()).dayCompletions.where("profileId").equals(profileId).reverse().limit(limit).toArray();
+}
+
+export async function toggleDayCompletion(date: string, profileId: string, dayType: "training" | "rest"): Promise<DBDayCompletion> {
+  const existing = await getDayCompletion(date, profileId);
+  const nowStr = now();
+  if (existing) {
+    const updated: DBDayCompletion = { ...existing, completed: !existing.completed, updatedAt: nowStr };
+    (await db()).dayCompletions.put(updated);
+    return updated;
+  }
+  const data: DBDayCompletion = {
+    id: generateId(),
+    profileId,
+    date,
+    dayType,
+    completed: true,
+    createdAt: nowStr,
+    updatedAt: nowStr,
+  };
+  (await db()).dayCompletions.put(data);
+  return data;
+}
+
+export async function getCurrentStreak(profileId: string): Promise<number> {
+  const completions = await (await db()).dayCompletions.where("profileId").equals(profileId).and((d) => d.completed).toArray();
+  if (completions.length === 0) return 0;
+  const sorted = completions.sort((a, b) => b.date.localeCompare(a.date));
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (sorted[0].date < yesterdayStr) return 0;
+  let streak = 0;
+  let checkDate = new Date(todayStr);
+  for (const d of sorted) {
+    if (new Date(checkDate).toISOString().slice(0, 10) === d.date) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (new Date(checkDate).toISOString().slice(0, 10) > d.date) break;
+  }
+  return streak;
+}
+
+export async function getBestStreak(profileId: string): Promise<number> {
+  const completions = await (await db()).dayCompletions.where("profileId").equals(profileId).and((d) => d.completed).toArray();
+  if (completions.length === 0) return 0;
+  const sorted = completions.map(d => d.date).sort();
+  let best = 0, run = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) { run = 1; continue; }
+    const prev = new Date(sorted[i - 1]);
+    const curr = new Date(sorted[i]);
+    const diffDays = (curr.getTime() - prev.getTime()) / 86400000;
+    if (diffDays === 1) { run++; } else { best = Math.max(best, run); run = 1; }
+  }
+  return Math.max(best, run);
+}
+
 // Bulk clear
 export async function clearAllData(): Promise<void> {
   (await db()).profiles.clear();
@@ -357,4 +421,5 @@ export async function clearAllData(): Promise<void> {
   (await db()).safetyFlags.clear();
   (await db()).contentItems.clear();
   (await db()).provenance.clear();
+  (await db()).dayCompletions.clear();
 }

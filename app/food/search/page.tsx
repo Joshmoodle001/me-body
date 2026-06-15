@@ -6,45 +6,429 @@ import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
-import { searchLocalFoods } from "@/db/queries";
-import { searchUsda } from "@/lib/foodApiClient";
-import type { NormalizedFood } from "@/lib/foodApiServer";
+import QuickAddModal from "@/components/food/QuickAddModal";
+import ServingCalculator from "@/components/food/ServingCalculator";
+import { searchLocalFoods, saveFood, saveFoodLog } from "@/db/queries";
 import type { DBFood } from "@/db/localDb";
+
+interface FoodResult {
+  id: string;
+  name: string;
+  brand?: string;
+  source: string;
+  unit: string;
+  unitGrams: number;
+  cals: number;
+  p: number;
+  c: number;
+  f: number;
+  code?: string;
+  raw: DBFood;
+}
+
+type TabMode = "all" | "local" | "off" | "usda";
+
+function round(n: number | undefined): number { return Math.round((Number(n) || 0) * 10) / 10; }
+
+function toFoodResult(dbFood: DBFood): FoodResult {
+  return {
+    id: dbFood.id,
+    name: dbFood.name,
+    brand: dbFood.brand,
+    source: dbFood.source || "Local",
+    unit: dbFood.servingSizeG ? `${dbFood.servingSizeG}g` : "100g",
+    unitGrams: dbFood.servingSizeG || 100,
+    cals: dbFood.caloriesPer100g ?? 0,
+    p: dbFood.proteinPer100g ?? 0,
+    c: dbFood.carbsPer100g ?? 0,
+    f: dbFood.fatPer100g ?? 0,
+    code: dbFood.barcode,
+    raw: dbFood,
+  };
+}
+
+function offProductToResult(p: Record<string, unknown>): FoodResult | null {
+  const n = (p.nutriments as Record<string, number | undefined>) || {};
+  const cal = n["energy-kcal_100g"] ?? n["energy-kcal_serving"];
+  if (cal === undefined || cal === null) return null;
+  const code = String(p.code || "");
+  const name = String(p.product_name || "Unnamed food");
+  return {
+    id: `off_${code}`,
+    name,
+    brand: String(p.brands || ""),
+    source: "Open Food Facts",
+    unit: "100g",
+    unitGrams: 100,
+    cals: round(cal),
+    p: round(n.proteins_100g ?? n.proteins_serving ?? 0),
+    c: round(n.carbohydrates_100g ?? n.carbohydrates_serving ?? 0),
+    f: round(n.fat_100g ?? n.fat_serving ?? 0),
+    code,
+    raw: {
+      id: `off_${code}`,
+      name,
+      brand: String(p.brands || ""),
+      source: "open_food_facts",
+      barcode: code,
+      caloriesPer100g: round(cal),
+      proteinPer100g: round(n.proteins_100g ?? n.proteins_serving ?? 0),
+      carbsPer100g: round(n.carbohydrates_100g ?? n.carbohydrates_serving ?? 0),
+      fatPer100g: round(n.fat_100g ?? n.fat_serving ?? 0),
+      confidenceScore: 0.7,
+      nutrientCompleteness: 0.6,
+      localeMatch: 0.5,
+      portionCertainty: 0.7,
+      verified: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      syncStatus: "local",
+    } as DBFood,
+  };
+}
+
+function usdaFoodToResult(food: Record<string, unknown>): FoodResult | null {
+  const nutrients: Array<Record<string, unknown>> = (food.foodNutrients as Array<Record<string, unknown>>) || [];
+  const findNutrient = (names: string[]): number => {
+    const match = nutrients.find((n) => names.some((name) => String(n.nutrientName || n.nutrient || "").toLowerCase().includes(name)));
+    return Number((match as Record<string, unknown>)?.value || 0);
+  };
+  const cal = findNutrient(["energy"]);
+  if (!cal) return null;
+  const fid = String(food.fdcId || "0");
+  return {
+    id: `usda_${fid}`,
+    name: String(food.description || "USDA food"),
+    brand: String((food as Record<string, unknown>).brandOwner || ""),
+    source: "USDA",
+    unit: "100g",
+    unitGrams: 100,
+    cals: round(cal),
+    p: round(findNutrient(["protein"])),
+    c: round(findNutrient(["carbohydrate"])),
+    f: round(findNutrient(["total lipid", "fat"])),
+    raw: {
+      id: `usda_${fid}`,
+      name: String(food.description || "USDA food"),
+      brand: String((food as Record<string, unknown>).brandOwner || ""),
+      source: "usda",
+      sourceId: fid,
+      caloriesPer100g: round(cal),
+      proteinPer100g: round(findNutrient(["protein"])),
+      carbsPer100g: round(findNutrient(["carbohydrate"])),
+      fatPer100g: round(findNutrient(["total lipid", "fat"])),
+      confidenceScore: 0.85,
+      nutrientCompleteness: 0.7,
+      localeMatch: 0.5,
+      portionCertainty: 0.8,
+      verified: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      syncStatus: "local",
+    } as DBFood,
+  };
+}
 
 export default function FoodSearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [localResults, setLocalResults] = useState<DBFood[]>([]);
-  const [usdaResults, setUsdaResults] = useState<NormalizedFood[]>([]);
+  const [barcode, setBarcode] = useState("");
+  const [tab, setTab] = useState<TabMode>("all");
+  const [results, setResults] = useState<FoodResult[]>([]);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
+  const [status, setStatus] = useState("Ready");
+  const [addFood, setAddFood] = useState<FoodResult | null>(null);
+  const [servingFood, setServingFood] = useState<FoodResult | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => { e.preventDefault(); if (!query.trim()) return; setLoading(true); setError(""); setSearched(true); try { setLocalResults(await searchLocalFoods(query.trim())); } catch { setLocalResults([]); } try { setUsdaResults(await searchUsda(query.trim())); } catch { setError("USDA search unavailable. Try manual entry."); setUsdaResults([]); } setLoading(false); };
+  const searchAll = async (q: string) => {
+    setLoading(true); setError(""); setStatus("Searching...");
+    let all: FoodResult[] = [];
 
-  const handleSelectFood = async (food: NormalizedFood | DBFood) => {
-    const { saveFood } = await import("@/db/queries"); let saved: DBFood;
-    if ("source" in food && "confidenceScore" in food) { const nf = food as NormalizedFood; saved = await saveFood({ source: nf.source, sourceId: nf.sourceId, barcode: nf.barcode, name: nf.name, brand: nf.brand, servingSizeG: nf.servingSizeG, caloriesPer100g: nf.caloriesPer100g, proteinPer100g: nf.proteinPer100g, carbsPer100g: nf.carbsPer100g, fatPer100g: nf.fatPer100g, fiberPer100g: nf.fiberPer100g, sugarPer100g: nf.sugarPer100g, sodiumPer100g: nf.sodiumPer100g, confidenceScore: nf.confidenceScore, nutrientCompleteness: 0.7, localeMatch: 0.6, portionCertainty: nf.servingSizeG ? 0.8 : 0.6, verified: false }); } else { saved = food as DBFood; }
-    router.push(`/food/${saved.id}`);
+    if (tab === "all" || tab === "local") {
+      try {
+        const local = await searchLocalFoods(q);
+        all.push(...local.map(toFoodResult));
+      } catch {}
+    }
+
+    if (tab === "all" || tab === "off") {
+      try {
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,brands,code,nutriments,serving_size`;
+        const res = await fetch(url);
+        const data = await res.json();
+        all.push(...(data.products || []).map(offProductToResult).filter(Boolean) as FoodResult[]);
+      } catch {}
+    }
+
+    if (tab === "all" || tab === "usda") {
+      try {
+        const key = "DEMO_KEY";
+        const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(key)}&query=${encodeURIComponent(q)}&pageSize=12`;
+        const res = await fetch(url);
+        const data = await res.json();
+        all.push(...(data.foods || []).map(usdaFoodToResult).filter(Boolean) as FoodResult[]);
+      } catch {}
+    }
+
+    const seen = new Set<string>();
+    const deduped = all.filter((f) => {
+      const key = `${f.name}|${f.brand||""}|${f.source}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 30);
+    setResults(deduped);
+    setStatus(deduped.length ? `${deduped.length} found` : "No results");
+    setLoading(false);
   };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    const bc = barcode.trim();
+    if (!q && !bc) return;
+    if (bc) {
+      setLoading(true); setStatus("Barcode lookup...");
+      try {
+        const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(bc)}.json?fields=product_name,brands,code,nutriments,serving_size`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.product) {
+          const r = offProductToResult(data.product);
+          setResults(r ? [r] : []);
+          setStatus(r ? "Barcode found" : "Nutrition unavailable");
+        } else {
+          setResults([]);
+          setStatus("Not found");
+        }
+      } catch { setStatus("Lookup failed"); setError("Barcode lookup failed. Check internet."); }
+      setLoading(false);
+    } else {
+      searchAll(q);
+    }
+  };
+
+  const handleSave = async (f: FoodResult) => {
+    const food = f.raw;
+    if (savedIds.has(f.id) || savedIds.has(food.id)) return;
+    try {
+      const saved = await saveFood({
+        source: food.source || "manual",
+        sourceId: food.sourceId,
+        barcode: food.barcode || f.code,
+        name: food.name,
+        brand: food.brand,
+        servingSizeG: f.unitGrams,
+        caloriesPer100g: food.caloriesPer100g || f.cals,
+        proteinPer100g: food.proteinPer100g || f.p,
+        carbsPer100g: food.carbsPer100g || f.c,
+        fatPer100g: food.fatPer100g || f.f,
+        confidenceScore: food.confidenceScore || 0.7,
+        nutrientCompleteness: food.nutrientCompleteness || 0.5,
+        localeMatch: food.localeMatch || 0.5,
+        portionCertainty: food.portionCertainty || 0.7,
+        verified: food.verified || false,
+      });
+      setSavedIds((prev) => new Set(prev).add(f.id).add(saved.id));
+    } catch {}
+  };
+
+  const handleAddToMeal = async (mealType: string, quantityG: number, servingLabel: string) => {
+    if (!addFood) return;
+    try {
+      const saved = await saveFood({
+        source: addFood.raw.source || "manual",
+        sourceId: addFood.raw.sourceId,
+        barcode: addFood.code,
+        name: addFood.name,
+        brand: addFood.brand,
+        servingSizeG: addFood.unitGrams,
+        caloriesPer100g: addFood.cals,
+        proteinPer100g: addFood.p,
+        carbsPer100g: addFood.c,
+        fatPer100g: addFood.f,
+        confidenceScore: 0.7,
+        nutrientCompleteness: 0.5,
+        localeMatch: 0.5,
+        portionCertainty: 0.7,
+        verified: false,
+      });
+      await saveFoodLog({
+        foodId: saved.id,
+        mealType,
+        quantityG,
+        servingLabel,
+        loggedAt: new Date().toISOString(),
+        notes: "",
+      });
+    } catch {}
+    setAddFood(null);
+  };
+
+  const tabs: { id: TabMode; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "local", label: "My Foods" },
+    { id: "off", label: "Open Food Facts" },
+    { id: "usda", label: "USDA" },
+  ];
 
   return (
     <div className="app-container">
-      <PageHeader title="Search Food" />
-      <form onSubmit={handleSearch} className="mb-6">
-        <label className="input-label">Search foods</label>
-        <div className="flex gap-2"><input id="food-search" type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="e.g. banana, chicken breast..." className="input flex-1" autoFocus /><button type="submit" disabled={loading || !query.trim()} className="btn btn-primary" style={{ opacity: loading || !query.trim() ? 0.5 : 1 }}>Search</button></div>
+      <PageHeader title="Food Lookup" />
+
+      <form onSubmit={handleSearch} className="mb-4">
+        <div className="flex gap-2 mb-3">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { setTab(t.id); setResults([]); setStatus("Ready"); }}
+              className="py-1.5 px-3 rounded-xl text-xs font-bold transition-colors"
+              style={{
+                background: tab === t.id ? "var(--brand-soft)" : "rgba(255,255,255,0.04)",
+                color: tab === t.id ? "var(--brand)" : "var(--text-muted)",
+                border: `1px solid ${tab === t.id ? "var(--brand-soft)" : "var(--border)"}`,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="chicken breast, rice, bread..."
+            className="input flex-1"
+            autoFocus
+            onKeyDown={(e) => { if (e.key === "Enter") handleSearch(e); }}
+          />
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ minWidth: "70px" }}>
+            {loading ? "..." : "Search"}
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            placeholder="Barcode (UPC/EAN)"
+            className="input flex-1"
+          />
+          <button type="submit" disabled={loading} className="btn btn-secondary" style={{ minWidth: "70px" }}>
+            Scan
+          </button>
+        </div>
       </form>
-      {loading && <LoadingState message="Searching..." />}
+
+      <div className="flex items-center justify-between mb-2">
+        <span className="badge badge-info text-xs">{status}</span>
+        <span className="text-xs" style={{ color: "var(--text-muted)" }}>{savedIds.size} saved</span>
+      </div>
+
+      {loading && <LoadingState message="Searching free food sources..." />}
       {error && <ErrorState message={error} />}
-      {searched && !loading && localResults.length === 0 && usdaResults.length === 0 && (<EmptyState title="No foods found" description={`No results for "${query}". Try a different search or add it manually.`} action={{ label: "Add Manually", onClick: () => router.push("/food/manual") }} />)}
-      {localResults.length > 0 && (
-        <div className="mb-6"><p className="text-xs font-semibold uppercase mb-2" style={{ color: "var(--text-muted)", letterSpacing: "0.05em" }}>Your Foods</p>
-          <div className="space-y-2">{localResults.map((food) => (<button key={food.id} onClick={() => router.push(`/food/${food.id}`)} className="card-interactive card w-full text-left"><p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{food.name}</p><div className="flex justify-between mt-1"><span className="text-xs" style={{ color: "var(--text-muted)" }}>{food.caloriesPer100g ?? "?"} kcal/100g</span><span className="text-xs" style={{ color: "var(--text-muted)" }}>Local</span></div></button>))}</div></div>
+      {!loading && !error && results.length === 0 && status !== "Ready" && (
+        <EmptyState title="No foods found" description="Try a simpler search term or add manually." action={{ label: "Add Manually", onClick: () => router.push("/food/manual") }} />
       )}
-      {usdaResults.length > 0 && (
-        <div><p className="text-xs font-semibold uppercase mb-2" style={{ color: "var(--text-muted)", letterSpacing: "0.05em" }}>USDA Database</p>
-          <div className="space-y-2">{usdaResults.map((food) => (<button key={food.sourceId ?? food.name} onClick={() => handleSelectFood(food)} className="card-interactive card w-full text-left"><p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{food.name}</p><div className="flex justify-between mt-1"><span className="text-xs" style={{ color: "var(--text-muted)" }}>{food.caloriesPer100g ?? "?"} kcal/100g</span><span className="badge badge-gold text-[10px]">USDA</span></div></button>))}</div></div>
+
+      <div className="space-y-2 mb-4">
+        {results.map((f) => (
+          <div key={f.id} className="card" style={{ background: "var(--card-muted)" }}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>{f.name}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  {f.brand ? `${f.brand} · ` : ""}{f.unit} · {f.cals} kcal · P {round(f.p)}g · C {round(f.c)}g · F {round(f.f)}g
+                </p>
+                <span className="badge mt-1 text-[10px]" style={{ background: f.source === "USDA" ? "var(--teal-soft)" : f.source === "Open Food Facts" ? "var(--gold-soft)" : "var(--brand-soft)", color: f.source === "USDA" ? "var(--teal)" : f.source === "Open Food Facts" ? "var(--gold)" : "var(--brand)" }}>
+                  {f.source}
+                </span>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <button
+                  onClick={() => handleSave(f)}
+                  className="px-2 py-1.5 rounded-xl text-[10px] font-bold transition-colors"
+                  style={{
+                    background: savedIds.has(f.id) ? "var(--success-soft)" : "rgba(255,255,255,0.06)",
+                    color: savedIds.has(f.id) ? "var(--success)" : "var(--text-muted)",
+                    border: `1px solid ${savedIds.has(f.id) ? "var(--success-soft)" : "var(--border)"}`,
+                  }}
+                  disabled={savedIds.has(f.id)}
+                >
+                  {savedIds.has(f.id) ? "Saved" : "Save"}
+                </button>
+                <button
+                  onClick={() => setServingFood(f)}
+                  className="px-2 py-1.5 rounded-xl text-[10px] font-bold transition-colors"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                >
+                  Calc
+                </button>
+                <button
+                  onClick={() => setAddFood(f)}
+                  className="px-2 py-1.5 rounded-xl text-[10px] font-bold transition-colors"
+                  style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "1px solid var(--brand-soft)" }}
+                >
+                  + Meal
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {addFood && (
+        <QuickAddModal
+          food={{
+            id: addFood.id,
+            name: addFood.name,
+            brand: addFood.brand,
+            source: addFood.raw.source || "manual",
+            servingSizeG: addFood.unitGrams,
+            caloriesPer100g: addFood.cals,
+            proteinPer100g: addFood.p,
+            carbsPer100g: addFood.c,
+            fatPer100g: addFood.f,
+            confidenceScore: 0.7,
+            nutrientCompleteness: 0.5,
+            localeMatch: 0.5,
+            portionCertainty: 0.7,
+            verified: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            syncStatus: "local",
+          }}
+          onClose={() => setAddFood(null)}
+          onAdd={handleAddToMeal}
+        />
+      )}
+
+      {servingFood && (
+        <ServingCalculator
+          food={{
+            id: servingFood.id,
+            name: servingFood.name,
+            source: servingFood.raw.source || "manual",
+            servingSizeG: servingFood.unitGrams,
+            caloriesPer100g: servingFood.cals,
+            proteinPer100g: servingFood.p,
+            carbsPer100g: servingFood.c,
+            fatPer100g: servingFood.f,
+            confidenceScore: 0.7,
+            nutrientCompleteness: 0.5,
+            localeMatch: 0.5,
+            portionCertainty: 0.7,
+            verified: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            syncStatus: "local",
+          }}
+          onClose={() => setServingFood(null)}
+        />
       )}
     </div>
   );

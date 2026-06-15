@@ -5,16 +5,32 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import { getProfile, clearAllData } from "@/db/queries";
+import { getDeviceIdentity, setDeviceDisplayName } from "@/lib/identity";
 import type { DBProfile } from "@/db/localDb";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<DBProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deviceId, setDeviceId] = useState("");
+  const [deviceName, setDeviceName] = useState("");
+  const [editingName, setEditingName] = useState(false);
 
-  useEffect(() => { getProfile().then((p) => { setProfile(p ?? null); setLoading(false); }); }, []);
+  useEffect(() => {
+    getProfile().then((p) => { setProfile(p ?? null); setLoading(false); });
+    const identity = getDeviceIdentity();
+    setDeviceId(identity.deviceId);
+    setDeviceName(identity.displayName);
+  }, []);
 
   const handleClear = async () => {
     if (window.confirm("Delete ALL local data? This cannot be undone.")) { await clearAllData(); window.location.href = "/onboarding"; }
+  };
+
+  const handleSaveName = () => {
+    const name = deviceName.trim() || deviceId.slice(0, 8);
+    setDeviceDisplayName(name);
+    setDeviceName(name);
+    setEditingName(false);
   };
 
   if (loading) return <div style={{ minHeight: "100vh", background: "var(--background)" }}><LoadingState /></div>;
@@ -41,6 +57,35 @@ export default function SettingsPage() {
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Complete onboarding to calculate your targets</p>
           </Link>
         )}
+
+        <div className="card" style={{ background: "var(--card-muted)" }}>
+          <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Your Data Bucket</p>
+          <div className="flex items-center justify-between">
+            {editingName ? (
+              <div className="flex items-center gap-2 w-full">
+                <input
+                  className="input flex-1"
+                  value={deviceName}
+                  onChange={(e) => setDeviceName(e.target.value)}
+                  placeholder="Name this device"
+                  maxLength={30}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); }}
+                  autoFocus
+                />
+                <button onClick={handleSaveName} className="btn btn-primary" style={{ minHeight: "40px", padding: "0.5rem 1rem", fontSize: "13px" }}>Save</button>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{deviceName}</p>
+                  <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "monospace" }}>ID: {deviceId.slice(0, 12)}...</p>
+                </div>
+                <button onClick={() => setEditingName(true)} className="text-xs font-semibold" style={{ color: "var(--teal)" }}>Rename</button>
+              </>
+            )}
+          </div>
+          <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "0.5rem" }}>All data on this device belongs to this bucket. No login required!</p>
+        </div>
 
         <div className="overflow-hidden" style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--border)", background: "var(--card)" }}>
           {[

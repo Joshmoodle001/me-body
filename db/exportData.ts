@@ -1,4 +1,5 @@
 import { getDb } from "./localDb";
+import { getDeviceIdentity } from "@/lib/identity";
 
 export async function exportAllData(): Promise<Record<string, unknown>> {
   const [profiles, targets, foods, foodLogs, waterLogs, bodyMetrics, workouts, habits, habitLogs] = await Promise.all([
@@ -13,10 +14,14 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     (await getDb()).habitLogs.filter((l) => !l.deletedAt).toArray(),
   ]);
 
+  let sourceDevice: { deviceId: string; displayName: string } | undefined;
+  try { sourceDevice = getDeviceIdentity(); } catch {}
+
   return {
     appName: "Me Body",
     exportedAt: new Date().toISOString(),
     version: "0.1.0",
+    sourceDevice,
     data: {
       profiles,
       targets,

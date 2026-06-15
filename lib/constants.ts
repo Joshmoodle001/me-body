@@ -96,6 +96,19 @@ export const CALORIES_PER_GRAM = {
 export const SYNC_STATUSES = ["local", "pending", "synced", "error"] as const;
 export type SyncStatus = (typeof SYNC_STATUSES)[number];
 
+export const DAY_TYPES = ["training", "rest"] as const;
+export type DayType = (typeof DAY_TYPES)[number];
+
+export const DAY_TYPE_LABELS: Record<DayType, string> = {
+  training: "Training Day",
+  rest: "Rest Day",
+};
+
+export const DAY_TYPE_MACRO_OFFSET: Record<DayType, number> = {
+  training: 1.0,
+  rest: 0.9,
+};
+
 export const FOOD_API_TIMEOUT_MS = 10000;
 export const DEBOUNCE_SCAN_MS = 2000;
 export const INSIGHT_GENERATION_INTERVAL_MS = 1000 * 60 * 5;

@@ -19,6 +19,7 @@ export interface DBProfile {
   pregnancyStatus: "none" | "pregnant" | "postpartum" | "not_applicable";
   chronicConditions: string[];
   medications: string[];
+  dayType: "training" | "rest";
   createdAt: string;
   updatedAt: string;
   syncStatus: string;
@@ -213,6 +214,17 @@ export interface DBProvenance {
   updatedAt: string;
 }
 
+export interface DBDayCompletion {
+  id: string;
+  profileId: string;
+  date: string;
+  dayType: "training" | "rest";
+  completed: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 class MeBodyDB extends Dexie {
   profiles!: Table<DBProfile, string>;
   targets!: Table<DBTargets, string>;
@@ -227,11 +239,12 @@ class MeBodyDB extends Dexie {
   safetyFlags!: Table<DBSafetyFlag, string>;
   contentItems!: Table<DBContentItem, string>;
   provenance!: Table<DBProvenance, string>;
+  dayCompletions!: Table<DBDayCompletion, string>;
 
   constructor() {
     super("MeBodyDB");
 
-    this.version(5).stores({
+    this.version(6).stores({
       profiles: "&id, createdAt, syncStatus",
       targets: "&id, profileId, syncStatus",
       foods: "&id, name, barcode, source, locale, syncStatus",
@@ -245,12 +258,13 @@ class MeBodyDB extends Dexie {
       safetyFlags: "&id, profileId",
       contentItems: "&id, kind, slug, locale",
       provenance: "&id, sourceId",
+      dayCompletions: "&id, profileId, date",
     });
   }
 }
 
 const DB_NAME = "MeBodyDB";
-const INIT_FLAG = "me_body_v7";
+const INIT_FLAG = "me_body_v8";
 
 let _db: MeBodyDB | null = null;
 let _initPromise: Promise<MeBodyDB> | null = null;
@@ -260,18 +274,18 @@ async function initDatabase(): Promise<MeBodyDB> {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    if (typeof window !== "undefined" && !window.sessionStorage.getItem(INIT_FLAG)) {
+    if (typeof window !== "undefined" && !window.localStorage.getItem(INIT_FLAG)) {
       console.log("[MeBodyDB] Deleting old database:", DB_NAME);
       try {
         await new Promise<void>((resolve) => {
           const req = window.indexedDB.deleteDatabase(DB_NAME);
-          req.onsuccess = () => { console.log("[MeBodyDB] Old database deleted successfully"); window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
-          req.onerror = (ev) => { console.error("[MeBodyDB] Delete failed:", req.error); window.sessionStorage.setItem(INIT_FLAG, "1"); resolve(); };
+          req.onsuccess = () => { console.log("[MeBodyDB] Old database deleted successfully"); window.localStorage.setItem(INIT_FLAG, "1"); resolve(); };
+          req.onerror = (ev) => { console.error("[MeBodyDB] Delete failed:", req.error); window.localStorage.setItem(INIT_FLAG, "1"); resolve(); };
           req.onblocked = () => { console.warn("[MeBodyDB] Delete blocked — forcing close"); try { req.onblocked = () => {}; } catch {} resolve(); };
         });
       } catch (e) {
         console.error("[MeBodyDB] Delete exception:", e);
-        window.sessionStorage.setItem(INIT_FLAG, "1");
+        window.localStorage.setItem(INIT_FLAG, "1");
       }
     }
 
@@ -285,7 +299,7 @@ async function initDatabase(): Promise<MeBodyDB> {
       // One more attempt: delete and retry
       try { await _db?.delete(); } catch {}
       try { await new Promise<void>((r) => { const req = window.indexedDB.deleteDatabase(DB_NAME); req.onsuccess = () => r(); req.onerror = () => r(); req.onblocked = () => r(); }); } catch {}
-      window.sessionStorage.removeItem(INIT_FLAG);
+      window.localStorage.removeItem(INIT_FLAG);
       _db = null;
       _initPromise = null;
       // Retry once

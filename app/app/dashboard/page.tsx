@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import LoadingState from "@/components/ui/LoadingState";
-import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate, getLatestBodyMetric, seedContentItems, seedProvenance } from "@/db/queries";
+import { getProfile, getTargets, getFoodLogsForDate, getWaterLogsForDate, getLatestBodyMetric, seedContentItems, seedProvenance, getDayCompletion, toggleDayCompletion, getCurrentStreak } from "@/db/queries";
 import { getDb } from "@/db/localDb";
 import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
@@ -53,19 +53,27 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<any[]>([]);
   const [latestMetric, setLatestMetric] = useState<any>(null);
   const [safetyFlags, setSafetyFlags] = useState<any[]>([]);
+  const [dayType, setDayType] = useState<"training" | "rest">("training");
+  const [todayDone, setTodayDone] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   const load = async () => {
     const p = await getProfile();
     if (!p) { setLoading(false); return; }
     setProfile(p);
+    setDayType(p.dayType || "training");
     const t = await getTargets(p.id);
     setTargets(t ?? null);
     const date = todayStr();
-    const [logs, waters, metric] = await Promise.all([
+    const [logs, waters, metric, dayComp, strk] = await Promise.all([
       getFoodLogsForDate(date),
       getWaterLogsForDate(date),
       getLatestBodyMetric(),
+      getDayCompletion(date, p.id),
+      getCurrentStreak(p.id),
     ]);
+    setTodayDone(dayComp?.completed ?? false);
+    setStreak(strk);
     setLatestMetric(metric ?? null);
     setWaterTotal(waters.reduce((s, w) => s + w.amountMl, 0));
 
@@ -154,6 +162,70 @@ export default function DashboardPage() {
         <Link href="/app/settings" className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0" style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "1px solid var(--brand-soft)" }} aria-label="Settings">
           {profile.name.charAt(0).toUpperCase()}
         </Link>
+      </div>
+
+      {/* Day Type Toggle + Completion */}
+      <div className="card mb-3" style={{ background: "var(--card-muted)" }}>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Today's Mode</span>
+            <div className="inline-flex rounded-xl p-1" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)" }}>
+              <button
+                onClick={async () => {
+                  const newType: "training" | "rest" = dayType === "training" ? "rest" : "training";
+                  setDayType(newType);
+                  const { saveProfile } = await import("@/db/queries");
+                  await saveProfile({ ...profile, dayType: newType });
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{
+                  background: dayType === "training" ? "var(--brand-soft)" : "transparent",
+                  color: dayType === "training" ? "var(--brand)" : "var(--text-muted)",
+                }}
+              >
+                &#x1F3CB; Training
+              </button>
+              <button
+                onClick={async () => {
+                  const newType: "training" | "rest" = dayType === "rest" ? "training" : "rest";
+                  setDayType(newType);
+                  const { saveProfile } = await import("@/db/queries");
+                  await saveProfile({ ...profile, dayType: newType });
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{
+                  background: dayType === "rest" ? "var(--warning-soft)" : "transparent",
+                  color: dayType === "rest" ? "var(--warning)" : "var(--text-muted)",
+                }}
+              >
+                &#x1F4A4; Rest
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Streak: <b className="text-sm" style={{ color: "var(--gold)" }}>{streak}</b> days
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                const comp = await toggleDayCompletion(todayStr(), profile.id, dayType);
+                setTodayDone(comp.completed);
+                const strk = await getCurrentStreak(profile.id);
+                setStreak(strk);
+              }}
+              className={`py-2 px-4 rounded-[var(--radius-button)] text-xs font-bold transition-all ${todayDone ? "" : "animate-pulse-glow"}`}
+              style={{
+                background: todayDone ? "var(--success-soft)" : "var(--brand-soft)",
+                color: todayDone ? "var(--success)" : "var(--brand)",
+                border: `1px solid ${todayDone ? "rgba(45,212,191,0.25)" : "rgba(255,107,61,0.25)"}`,
+              }}
+            >
+              {todayDone ? "\u2713 Day Complete" : "Tick Complete"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Safety Alerts */}
