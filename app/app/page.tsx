@@ -23,8 +23,8 @@ export default function AppRoot() {
         }
 
         // Logged in — pull profile from Supabase first
-        seedAccountFoods().catch(() => {});
-        seedCut65PlanIfNeeded(session.user?.email).catch(() => {});
+        await seedAccountFoods().catch(() => {});
+        await seedCut65PlanIfNeeded(session.user?.email).catch(() => {});
         const { hasProfile, needsOnboarding } = await pullProfileFromCloud();
 
         if (hasProfile && !needsOnboarding) {

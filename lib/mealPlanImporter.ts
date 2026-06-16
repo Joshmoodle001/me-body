@@ -9,16 +9,23 @@ export async function importMealPlan(plan: MealPlanTemplate): Promise<{ foods: n
   let mealsCreated = 0;
 
   try {
-    // Import foods
+    // Import foods — check by name to avoid duplicates with seed_* or user-saved foods
+    const allFoods = await db.foods.toArray();
+    const foodByName = new Map<string, string>();
+    for (const existing of allFoods) {
+      const key = existing.name.toLowerCase().trim();
+      if (!foodByName.has(key)) foodByName.set(key, existing.id);
+    }
+
     const foodIdMap = new Map<string, string>();
     for (const f of plan.foods) {
-      const slug = `plan_${f.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
-      const existing = await db.foods.get(slug);
-      if (existing) {
-        foodIdMap.set(f.name, existing.id);
+      const nameKey = f.name.toLowerCase().trim();
+      const existingId = foodByName.get(nameKey);
+      if (existingId) {
+        foodIdMap.set(f.name, existingId);
         continue;
       }
-      const id = slug;
+      const id = `plan_${f.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
       await db.foods.put({
         id,
         source: f.source || "Meal Plan",

@@ -60,6 +60,15 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState(0);
 
   const load = async () => {
+    // Seed foods and meal plan on every dashboard load (safe — checks if already seeded)
+    seedAccountFoods().catch(() => {});
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) seedCut65PlanIfNeeded(user.email).catch(() => {});
+    }
+
     const p = await getProfile();
     if (!p) { setLoading(false); return; }
     setProfile(p);
@@ -121,6 +130,12 @@ export default function DashboardPage() {
     seedContentItems(buildContentItems()).catch(() => {});
     seedProvenance(buildProvenanceEntries()).catch(() => {});
     seedAccountFoods().catch(() => {});
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const s = createClient();
+      if (s) s.auth.getUser().then(({ data: { user } }) => {
+        if (user?.email) seedCut65PlanIfNeeded(user.email).catch(() => {});
+      }).catch(() => {});
+    }).catch(() => {});
   }, []);
 
   if (loading) return <div style={{ background: "var(--background)", minHeight: "100vh" }}><LoadingState /></div>;
