@@ -61,12 +61,12 @@ export default function DashboardPage() {
 
   const load = async () => {
     // Seed foods and meal plan on every dashboard load (safe — checks if already seeded)
-    seedAccountFoods().catch(() => {});
+    await seedAccountFoods().catch(() => {});
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     if (supabase) {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) seedCut65PlanIfNeeded(user.email).catch(() => {});
+      if (user?.email) await seedCut65PlanIfNeeded(user.email).catch(() => {});
     }
 
     const p = await getProfile();
