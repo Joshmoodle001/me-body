@@ -9,7 +9,7 @@ import { calculateDailyNutrition } from "@/lib/calculations";
 import { generateInsights, hasSafetyConcerns, filterBySerenity } from "@/lib/coaching";
 import { getContraindicationsForProfile } from "@/lib/safety";
 import { buildContentItems, buildProvenanceEntries } from "@/lib/contentSeed";
-import { seedAccountFoods } from "@/lib/accountSeed";
+import { seedAccountFoods, seedCut65PlanIfNeeded } from "@/lib/accountSeed";
 import { DAY_TYPE_MACRO_OFFSET } from "@/lib/constants";
 import type { DBProfile, DBTargets } from "@/db/localDb";
 

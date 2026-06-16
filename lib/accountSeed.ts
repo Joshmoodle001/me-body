@@ -1,5 +1,7 @@
 import { getDb } from "@/db/localDb";
 import type { DBFood } from "@/db/localDb";
+import { importMealPlan } from "./mealPlanImporter";
+import { CUT65_PLAN } from "./mealPlanTemplate";
 
 const VERIFIED_FOODS: Omit<DBFood, "id" | "createdAt" | "updatedAt" | "syncStatus">[] = [
   { source: "verified", name: "Cooked chicken breast", brand: "Verified", servingSizeG: 100, caloriesPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6, confidenceScore: 95, nutrientCompleteness: 0.95, localeMatch: 0.9, portionCertainty: 0.95, verified: true },
@@ -14,23 +16,39 @@ const VERIFIED_FOODS: Omit<DBFood, "id" | "createdAt" | "updatedAt" | "syncStatu
   { source: "verified", name: "Oats, dry", brand: "Generic", servingSizeG: 100, caloriesPer100g: 389, proteinPer100g: 16.9, carbsPer100g: 66.3, fatPer100g: 6.9, confidenceScore: 95, nutrientCompleteness: 0.9, localeMatch: 0.9, portionCertainty: 0.95, verified: true },
 ];
 
+const CUT65_SEEDED_KEY = "me_body_cut65_seeded_v1";
+
 export async function seedAccountFoods(): Promise<void> {
   const db = await getDb();
   const existing = await db.foods.count();
-  if (existing >= VERIFIED_FOODS.length) return; // Already seeded
+  if (existing >= VERIFIED_FOODS.length) return;
 
   const now = new Date().toISOString();
   for (const food of VERIFIED_FOODS) {
     const id = `seed_${food.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
     const existingFood = await db.foods.get(id);
     if (!existingFood) {
-      await db.foods.put({
-        ...food,
-        id,
-        createdAt: now,
-        updatedAt: now,
-        syncStatus: "local",
-      });
+      await db.foods.put({ ...food, id, createdAt: now, updatedAt: now, syncStatus: "local" });
+    }
+  }
+}
+
+export async function seedCut65PlanIfNeeded(supabaseEmail?: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  // Only seed for joshmoodley01
+  if (supabaseEmail && supabaseEmail.toLowerCase().includes("joshmoodley01")) {
+    const alreadySeeded = window.localStorage.getItem(CUT65_SEEDED_KEY);
+    if (alreadySeeded) return;
+
+    try {
+      const result = await importMealPlan(CUT65_PLAN);
+      if (!result.error) {
+        window.localStorage.setItem(CUT65_SEEDED_KEY, new Date().toISOString());
+        console.log(`[MeBody] Seeded Cut65 plan for ${supabaseEmail}: ${result.foods} foods, ${result.meals} meals`);
+      }
+    } catch (e) {
+      console.error("[MeBody] Cut65 seed failed:", e);
     }
   }
 }
