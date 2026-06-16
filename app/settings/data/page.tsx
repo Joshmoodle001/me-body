@@ -8,6 +8,20 @@ import { validateMealPlan, CUT65_PLAN } from "@/lib/mealPlanTemplate";
 import { importMealPlan, clearMealPlan, getActiveMealPlan } from "@/lib/mealPlanImporter";
 import PageHeader from "@/components/ui/PageHeader";
 
+function csvToMealPlan(foodsCsv: string, mealsCsv: string, planName: string, startDate: string, totalDays: number) {
+  const foods = foodsCsv.split("\n").slice(1).filter(r => r.trim()).map(row => {
+    const [name, brand, servingSizeG, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g] = row.split(",").map(s => s.trim());
+    return { name, brand: brand || undefined, source: "Uploaded Plan", servingSizeG: Number(servingSizeG) || 100, caloriesPer100g: Number(caloriesPer100g) || 0, proteinPer100g: Number(proteinPer100g) || 0, carbsPer100g: Number(carbsPer100g) || 0, fatPer100g: Number(fatPer100g) || 0 };
+  });
+  const mealMap = new Map<string, { name: string; time?: string; foods: { foodName: string; quantityG: number; notes?: string }[] }>();
+  mealsCsv.split("\n").slice(1).filter(r => r.trim()).forEach(row => {
+    const [mealName, mealTime, foodName, quantityG, notes] = row.split(",").map(s => s.trim());
+    if (!mealMap.has(mealName)) mealMap.set(mealName, { name: mealName, time: mealTime || undefined, foods: [] });
+    mealMap.get(mealName)!.foods.push({ foodName, quantityG: Number(quantityG) || 0, notes: notes || undefined });
+  });
+  return { schema: "mebody.mealplan.v1" as const, name: planName, startDate, totalDays, dayType: "both" as const, waterTargetMl: 3000, foods, meals: Array.from(mealMap.values()) };
+}
+
 export default function DataSettingsPage() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | "info">("success");
@@ -80,7 +94,7 @@ export default function DataSettingsPage() {
         <div className="card neon-card-teal" style={{ background: "var(--card-muted)" }}>
           <h2 className="font-bold mb-1" style={{ color: "var(--text-primary)" }}>Upload Meal Plan</h2>
           <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
-            Import a meal plan template to pre-load foods and daily meal logging.
+            Import a meal plan to pre-load foods and daily meals. Use JSON or CSV templates.
           </p>
 
           {activePlan && (
@@ -99,34 +113,25 @@ export default function DataSettingsPage() {
             </button>
           </div>
 
+          <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-muted)" }}>Download templates to fill in:</p>
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <a href="/templates/foods-template.csv" download className="text-center py-2 rounded-xl text-[10px] font-bold transition-colors" style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", border: "1px solid var(--border)", textDecoration: "none" }}>
+              Foods CSV
+            </a>
+            <a href="/templates/meals-template.csv" download className="text-center py-2 rounded-xl text-[10px] font-bold transition-colors" style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", border: "1px solid var(--border)", textDecoration: "none" }}>
+              Meals CSV
+            </a>
+            <a href="#" onClick={(e) => { e.preventDefault(); const blob = new Blob([JSON.stringify(CUT65_PLAN, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "cut65-plan.json"; a.click(); URL.revokeObjectURL(url); }} className="text-center py-2 rounded-xl text-[10px] font-bold transition-colors" style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", border: "1px solid var(--border)", textDecoration: "none" }}>
+              JSON template
+            </a>
+          </div>
+
           {activePlan && (
             <button onClick={async () => { await clearMealPlan(); setActivePlan(null); show("Meal plan cleared."); }} className="w-full py-2 rounded-xl text-xs font-semibold" style={{ background: "var(--error-soft)", color: "var(--error)" }}>
               Clear Active Plan
             </button>
           )}
 
-          <details className="mt-3">
-            <summary className="text-xs font-semibold cursor-pointer" style={{ color: "var(--text-muted)" }}>Template format</summary>
-            <pre className="mt-2 p-3 rounded-xl text-[10px] overflow-x-auto" style={{ background: "rgba(0,0,0,0.3)", color: "var(--text-muted)", lineHeight: 1.4 }}>
-{`{
-  "schema": "mebody.mealplan.v1",
-  "name": "My Plan",
-  "startDate": "2026-06-15",
-  "totalDays": 175,
-  "dayType": "both",
-  "waterTargetMl": 3000,
-  "foods": [
-    { "name": "Chicken breast", "source": "Meal Plan",
-      "servingSizeG": 100, "caloriesPer100g": 165,
-      "proteinPer100g": 31, "carbsPer100g": 0, "fatPer100g": 3.6 }
-  ],
-  "meals": [
-    { "name": "Breakfast", "foods": [
-      { "foodName": "Chicken breast", "quantityG": 200 }
-    ]}
-  ]
-}`}</pre>
-          </details>
         </div>
 
         <div className="card">
